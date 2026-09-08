@@ -1,0 +1,3710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dreamers — Run Beyond Limits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --primary-glow: rgba(0, 210, 255, 0.45);
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.45);
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg-dark: #070a12;
+            --card-bg: rgba(15, 23, 42, 0.88);
+            --card-border: rgba(255, 255, 255, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: #030712;
+            color: #ffffff;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-wrapper {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 480px;
+            max-height: 960px;
+            background: #000000;
+            box-shadow: 0 0 50px rgba(0, 210, 255, 0.25), 0 0 100px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* UI Layer */
+        .ui-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+        }
+
+        /* Top HUD */
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+            gap: 12px;
+        }
+
+        .hud-left-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-btn-pause {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .icon-btn-pause:active {
+            transform: scale(0.92);
+            border-color: var(--primary);
+        }
+
+        .hud-score-box {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            border-radius: 16px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-score-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .hud-score-val {
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+
+        .multiplier-pill {
+            background: linear-gradient(135deg, #d946ef, #8b5cf6);
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 13px;
+            padding: 3px 8px;
+            border-radius: 9px;
+            box-shadow: 0 0 14px rgba(217, 70, 239, 0.6);
+            animation: pulse-glow 1.5s infinite alternate;
+        }
+
+        .hud-coin-badge {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .coin-icon-star {
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle, #fde047 30%, #eab308 70%, #ca8a04 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.8);
+            color: #78350f;
+            font-size: 13px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .weather-badge {
+            position: absolute;
+            top: 75px;
+            left: 16px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .biome-banner {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.92), transparent);
+            border-top: 1px solid var(--primary);
+            border-bottom: 1px solid var(--primary);
+            padding: 6px 24px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #38bdf8;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-shadow: 0 0 10px var(--primary);
+            pointer-events: none;
+            z-index: 15;
+            white-space: nowrap;
+        }
+
+        .biome-banner.show {
+            opacity: 1;
+        }
+
+        @keyframes pulse-glow {
+            from { transform: scale(1); filter: brightness(1); }
+            to { transform: scale(1.08); filter: brightness(1.2); }
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: #ffffff;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .active-powerups-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .powerup-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            width: fit-content;
+            animation: slideInLeft 0.3s ease;
+        }
+
+        .powerup-progress-ring {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #38bdf8;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .hoverboard-pill {
+            position: absolute;
+            top: 75px;
+            right: 16px;
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            border: 1px solid #67e8f9;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+            animation: pulse-glow 1s infinite alternate;
+        }
+
+        .modal-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+            pointer-events: auto;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .game-logo {
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            text-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+        }
+
+        .game-tagline {
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d2ff, #0072ff);
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 800;
+            padding: 14px 36px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 25px var(--primary-glow);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            width: 100%;
+            max-width: 290px;
+            margin: 6px 0;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 35px rgba(0, 210, 255, 0.7);
+        }
+
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--card-border);
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 290px;
+            margin: 4px 0;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(51, 65, 85, 0.9);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .char-scroll-box {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            width: 100%;
+            padding: 8px 2px;
+            margin-bottom: 12px;
+        }
+
+        .char-select-card {
+            flex: 0 0 135px;
+            background: var(--card-bg);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 10px 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .char-select-card.active {
+            border-color: var(--primary);
+            background: linear-gradient(180deg, rgba(14, 165, 233, 0.2), rgba(15, 23, 42, 0.9));
+            box-shadow: 0 0 20px var(--primary-glow);
+            transform: translateY(-4px);
+        }
+
+        .char-card-name {
+            font-weight: 800;
+            font-size: 14px;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        .char-card-theme {
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .char-card-ability {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* 3D Lab Wardrobe Outfit Selector */
+        .outfit-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            justify-content: center;
+        }
+
+        .outfit-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .outfit-btn.active {
+            background: var(--primary);
+            color: #000;
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .mission-box {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            width: 100%;
+            max-width: 290px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-size: 11px;
+        }
+
+        .mission-title {
+            color: #38bdf8;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .shop-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .shop-item-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .shop-item-lvl {
+            font-size: 11px;
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        .shop-buy-btn {
+            margin-top: 6px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #000;
+            font-weight: 800;
+            font-size: 12px;
+            padding: 6px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .shop-buy-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .gameover-stats {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 16px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 14px;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-val-highlight {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .on-screen-dpad {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: auto;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .dpad-side {
+            display: flex;
+            gap: 14px;
+        }
+
+        .ctrl-btn {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            color: #ffffff;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+            transition: transform 0.1s ease, background 0.1s ease, border-color 0.1s ease;
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.90);
+            background: rgba(255, 255, 255, 0.35);
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+
+        .ctrl-btn-hoverboard {
+            width: auto;
+            padding: 0 16px;
+            font-size: 13px;
+            background: linear-gradient(135deg, #06b6d4, #2563eb);
+            border-color: #38bdf8;
+            height: 48px;
+            border-radius: 24px;
+        }
+    </style>
+    <!-- Offline Local Three.js Bundle -->
+    <script src="js/three.min.js"></script>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <!-- 3D WebGL Canvas Layer -->
+    <div id="canvas-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Live Weather Pill HUD -->
+    <div class="weather-badge" id="hud-weather-badge">🌅 GOLDEN MORNING</div>
+
+    <!-- Biome Announcement Banner -->
+    <div class="biome-banner" id="biome-banner">🏙️ REALISTIC METRO CORRIDOR</div>
+
+    <!-- Active Gameplay HUD -->
+    <div class="ui-layer" id="gameplay-hud" style="display: none;">
+        <div>
+            <div class="hud-header">
+                <div class="hud-left-group">
+                    <button class="icon-btn-pause" onclick="togglePause()">⏸</button>
+                    <div class="hud-score-box">
+                        <div>
+                            <div class="hud-score-label">Score</div>
+                            <div class="hud-score-val" id="hud-score">0</div>
+                        </div>
+                        <div class="multiplier-pill" id="hud-multiplier">x2</div>
+                    </div>
+                </div>
+
+                <div class="hud-coin-badge">
+                    <div class="coin-icon-star">★</div>
+                    <span id="hud-coins">0</span>
+                </div>
+            </div>
+
+            <div class="active-powerups-bar" id="powerups-hud-container"></div>
+            <div class="hoverboard-pill" id="hud-hoverboard-active" style="display: none;">
+                🛹 SHIELD ACTIVE
+            </div>
+        </div>
+
+        <div class="on-screen-dpad">
+            <div class="dpad-side">
+                <button class="ctrl-btn" onpointerdown="handleInput('left')">◀</button>
+                <button class="ctrl-btn" onpointerdown="handleInput('right')">▶</button>
+            </div>
+            <button class="ctrl-btn ctrl-btn-hoverboard" onpointerdown="activateHoverboard()">🛹 BOARD</button>
+            <div class="dpad-side">
+                <button class="ctrl-btn" onpointerdown="handleInput('jump')">▲</button>
+                <button class="ctrl-btn" onpointerdown="handleInput('slide')">▼</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu (3D Interactive CSE Student Lab) -->
+    <div class="modal-screen" id="menu-screen">
+        <div class="game-logo">DREAMERS</div>
+        <div class="game-tagline">Run Beyond Limits</div>
+
+        <div class="mission-box">
+            <div class="mission-title">🎯 ACTIVE MISSION:</div>
+            <div id="menu-mission-desc">Reach 600m to experience Rainy Neon Night</div>
+            <div style="color: #10b981; font-weight: 700; margin-top: 2px;">Reward: +1x Permanent Multiplier</div>
+        </div>
+
+        <!-- 3D Lab Wardrobe Outfit Selector -->
+        <div class="outfit-bar">
+            <button class="outfit-btn active" onclick="setOutfit('casual')">👕 Casual</button>
+            <button class="outfit-btn" onclick="setOutfit('clay')">🗿 Studio Clay</button>
+            <button class="outfit-btn" onclick="setOutfit('hoodie')">🧥 Hoodie</button>
+            <button class="outfit-btn" onclick="setOutfit('suit')">👔 Startup Suit</button>
+            <button class="outfit-btn" onclick="setOutfit('cyber')">⚡ Cyber Lab</button>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">👆 Drag character to rotate 360° • Click cards to switch gender</div>
+
+        <div class="char-scroll-box" id="character-carousel"></div>
+
+        <button class="btn-primary" onclick="startGame()">🚀 PLAY RUN</button>
+        <button class="btn-secondary" onclick="openShopModal()">⚡ LAB UPGRADES & SHOP</button>
+
+        <div style="margin-top: 10px; font-size: 11px; color: #64748b;">
+            High Score: <span id="menu-highscore" style="color: #f59e0b; font-weight: 800;">0</span> • Total Coins: <span id="menu-totalcoins" style="color: #fbbf24; font-weight: 800;">0</span>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div class="modal-screen hidden" id="shop-screen">
+        <div style="font-size: 24px; font-weight: 900; color: #38bdf8; margin-bottom: 12px;">⚡ LAB UPGRADES</div>
+        <div class="shop-grid" id="shop-items-container"></div>
+        <button class="btn-primary" onclick="closeShopModal()">BACK TO MENU</button>
+    </div>
+
+    <!-- Pause Screen -->
+    <div class="modal-screen hidden" id="pause-screen">
+        <div style="font-size: 32px; font-weight: 900; margin-bottom: 20px;">GAME PAUSED</div>
+        <button class="btn-primary" onclick="togglePause()">RESUME</button>
+        <button class="btn-secondary" onclick="restartGame()">RESTART</button>
+        <button class="btn-secondary" onclick="quitToMainMenu()">MAIN MENU</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="modal-screen hidden" id="gameover-screen">
+        <div style="font-size: 32px; font-weight: 900; color: #ef4444; margin-bottom: 4px;">RUN CRASHED</div>
+        <div style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;" id="gameover-subtitle">Every dream faces challenges. Get back up!</div>
+
+        <div class="gameover-stats">
+            <div class="stat-row">
+                <span style="color: #94a3b8;">Final Score</span>
+                <span class="stat-val-highlight" id="gameover-score">0</span>
+            </div>
+            <div class="stat-row">
+                <span style="color: #94a3b8;">High Score</span>
+                <span style="font-weight: 800; color: #fbbf24;" id="gameover-best">0</span>
+            </div>
+            <div class="stat-row">
+                <span style="color: #94a3b8;">Distance</span>
+                <span style="font-weight: 700;" id="gameover-distance">0 m</span>
+            </div>
+            <div class="stat-row">
+                <span style="color: #94a3b8;">Coins Collected</span>
+                <span style="font-weight: 800; color: #f59e0b;" id="gameover-coins">+0</span>
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="restartGame()">⚡ RUN AGAIN</button>
+        <button class="btn-secondary" onclick="quitToMainMenu()">CHARACTER SELECTION</button>
+    </div>
+</div>
+
+<script>
+/* ==========================================================================
+   DREAMERS: REALISTIC PBR RUNNER WITH DYNAMIC WEATHER, STREET LIFE & 3D LAB
+   ========================================================================== */
+
+// --- Procedural Canvas Textures ---
+function createBallastTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#27272a';
+    ctx.fillRect(0, 0, 512, 512);
+
+    for (let i = 0; i < 45000; i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const s = 1 + Math.random() * 2.5;
+        const shade = Math.floor(30 + Math.random() * 45);
+        ctx.fillStyle = `rgb(${shade},${shade + 2},${shade + 5})`;
+        ctx.fillRect(x, y, s, s);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createTieTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#3e2723';
+    ctx.fillRect(0, 0, 512, 128);
+
+    // Wood Grain lines
+    ctx.fillStyle = 'rgba(24, 14, 10, 0.4)';
+    for (let y = 0; y < 128; y += 4) {
+        ctx.fillRect(0, y, 512, 2 + Math.random() * 2);
+    }
+
+    // Steel Tie Plates at rail mounting spots
+    [-2.4 - 0.55, -2.4 + 0.55, -0.55, 0.55, 2.4 - 0.55, 2.4 + 0.55].forEach(xRel => {
+        const px = ((xRel + 4.5) / 9.0) * 512;
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(px - 14, 10, 28, 108);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(px - 10, 16, 6, 6);
+        ctx.fillRect(px + 4, 16, 6, 6);
+        ctx.fillRect(px - 10, 106, 6, 6);
+        ctx.fillRect(px + 4, 106, 6, 6);
+    });
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createYellowTactileTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256;
+    c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(0, 0, 256, 256);
+
+    ctx.fillStyle = '#ca8a04';
+    for (let x = 8; x < 256; x += 24) {
+        for (let y = 8; y < 256; y += 24) {
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createStationPosterTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 768;
+    const ctx = c.getContext('2d');
+
+    // Deep Royal Blue Gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, 768);
+    grad.addColorStop(0, '#0c4a6e');
+    grad.addColorStop(0.5, '#075985');
+    grad.addColorStop(1, '#082f49');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 768);
+
+    // Frame
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(16, 16, 480, 736);
+
+    // Gold Crown Logo
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(256 - 40, 180);
+    ctx.lineTo(256 - 50, 120);
+    ctx.lineTo(256 - 20, 145);
+    ctx.lineTo(256, 110);
+    ctx.lineTo(256 + 20, 145);
+    ctx.lineTo(256 + 50, 120);
+    ctx.lineTo(256 + 40, 180);
+    ctx.closePath();
+    ctx.fill();
+
+    // Bold Motivational Typography
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 56px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('DREAM', 256, 280);
+    ctx.fillText('BELIEVE', 256, 360);
+    ctx.fillText('RUN', 256, 440);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('ACHIEVE', 256, 520);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText('METRO LINE • 2026', 256, 620);
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createGraffitiTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 512, 256);
+
+    // Bold Bubble Graffiti DREAM in rainbow gradient with spray drops
+    ctx.font = 'bold 105px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Black Thick Outline
+    ctx.strokeStyle = '#09090b';
+    ctx.lineWidth = 22;
+    ctx.strokeText('DREAM', 256, 128);
+
+    // Neon Rainbow Gradient
+    const g = ctx.createLinearGradient(60, 0, 450, 0);
+    g.addColorStop(0, '#06b6d4');
+    g.addColorStop(0.3, '#3b82f6');
+    g.addColorStop(0.6, '#ec4899');
+    g.addColorStop(0.85, '#eab308');
+    g.addColorStop(1, '#10b981');
+    ctx.fillStyle = g;
+    ctx.fillText('DREAM', 256, 128);
+
+    // Spray Drips
+    ctx.fillStyle = '#ec4899';
+    [160, 240, 320, 390].forEach(x => {
+        ctx.fillRect(x, 175, 5, 25 + Math.random() * 20);
+        ctx.beginPath();
+        ctx.arc(x + 2.5, 205 + Math.random() * 15, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createBillboardLimitsTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 768;
+    const ctx = c.getContext('2d');
+
+    // Electric Deep Blue
+    ctx.fillStyle = '#1e3a8a';
+    ctx.fillRect(0, 0, 512, 768);
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.moveTo(350, 40);
+    ctx.lineTo(480, 40);
+    ctx.lineTo(390, 720);
+    ctx.lineTo(260, 720);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 72px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('RUN', 50, 240);
+    ctx.fillText('BEYOND', 50, 330);
+    ctx.fillText('LIMITS', 50, 420);
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 26px sans-serif';
+    ctx.fillText('⚡ OFFICIAL RUNNER EXP', 50, 500);
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createHazardChevronTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256;
+    c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 256);
+
+    ctx.fillStyle = '#dc2626';
+    // Chevron diagonal arrow patterns
+    for (let y = -256; y < 512; y += 64) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(128, y + 64);
+        ctx.lineTo(256, y);
+        ctx.lineTo(256, y + 36);
+        ctx.lineTo(128, y + 100);
+        ctx.lineTo(0, y + 36);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createCitySignTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256;
+    c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(4, 4, 248, 56);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CITY ➔', 128, 32);
+
+    return new THREE.CanvasTexture(c);
+}
+
+function createTunnelBrickTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Brick Pattern
+    for (let y = 0; y < 512; y += 32) {
+        const offset = (y / 32) % 2 === 0 ? 0 : 32;
+        for (let x = -32; x < 512; x += 64) {
+            ctx.fillStyle = (x + y) % 3 === 0 ? '#9a3412' : ((x + y) % 2 === 0 ? '#7c2d12' : '#b45309');
+            ctx.fillRect(x + offset + 3, y + 3, 58, 26);
+            ctx.strokeStyle = '#291104';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x + offset + 3, y + 3, 58, 26);
+        }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createTunnelHazardTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(0, 0, 512, 128);
+
+    ctx.fillStyle = '#09090b';
+    for (let x = -128; x < 640; x += 64) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + 32, 0);
+        ctx.lineTo(x - 32, 128);
+        ctx.lineTo(x - 64, 128);
+        ctx.closePath();
+        ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+function createCautionSignTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, 512, 128);
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(6, 6, 500, 116);
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 34px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚠ CAUTION: SUBWAY TUNNEL', 256, 64);
+    return new THREE.CanvasTexture(c);
+}
+
+function createBuildingFacadeTexture(hue = 210) {
+    const c = document.createElement('canvas');
+    c.width = 512;
+    c.height = 512;
+    const ctx = c.getContext('2d');
+
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 512, 512);
+
+    for (let x = 20; x < 500; x += 45) {
+        for (let y = 20; y < 500; y += 60) {
+            const isLit = Math.random() < 0.65;
+            ctx.fillStyle = isLit ? `hsl(${hue}, 80%, ${65 + Math.random() * 20}%)` : '#0f172a';
+            ctx.fillRect(x, y, 32, 42);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, 32, 42);
+        }
+    }
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+}
+
+// --- Audio Synthesizer ---
+class GameAudioEngine {
+    constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.bgmTimer = null;
+        this.bgmStep = 0;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playJump() {
+        if (this.isMuted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.18);
+    }
+
+    playSlide() {
+        if (this.isMuted || !this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 0.2;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.2);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+    }
+
+    playCoin(streak = 1) {
+        if (this.isMuted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const pentatonic = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+        const freq = pentatonic[(streak - 1) % pentatonic.length];
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, this.ctx.currentTime + 0.08);
+
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+    }
+
+    playBirdFlap() {
+        if (this.isMuted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+    }
+
+    playPowerup() {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        [440, 554.37, 659.25, 880].forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + idx * 0.06);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.06);
+            gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.06 + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.06);
+            osc.stop(now + idx * 0.06 + 0.15);
+        });
+    }
+
+    playCrash() {
+        if (this.isMuted || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+    }
+
+    startBGM() {
+        if (this.bgmTimer) return;
+        this.bgmStep = 0;
+        const bpm = 128;
+        const interval = (60 / bpm) / 4 * 1000;
+        const bassNotes = [65.41, 65.41, 77.78, 87.31, 65.41, 65.41, 98.00, 87.31];
+
+        this.bgmTimer = setInterval(() => {
+            if (this.isMuted || !this.ctx) return;
+            if (this.bgmStep % 4 === 0) {
+                const kick = this.ctx.createOscillator();
+                const kickGain = this.ctx.createGain();
+                kick.frequency.setValueAtTime(120, this.ctx.currentTime);
+                kick.frequency.exponentialRampToValueAtTime(35, this.ctx.currentTime + 0.09);
+                kickGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                kickGain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
+                kick.connect(kickGain);
+                kickGain.connect(this.ctx.destination);
+                kick.start();
+                kick.stop(this.ctx.currentTime + 0.09);
+            }
+            if (this.bgmStep % 2 === 0) {
+                const note = bassNotes[(Math.floor(this.bgmStep / 2)) % bassNotes.length];
+                const bass = this.ctx.createOscillator();
+                const bassGain = this.ctx.createGain();
+                bass.type = 'sawtooth';
+                bass.frequency.setValueAtTime(note, this.ctx.currentTime);
+                bassGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                bassGain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                bass.connect(bassGain);
+                bassGain.connect(this.ctx.destination);
+                bass.start();
+                bass.stop(this.ctx.currentTime + 0.12);
+            }
+            this.bgmStep++;
+        }, interval);
+    }
+
+    stopBGM() {
+        if (this.bgmTimer) {
+            clearInterval(this.bgmTimer);
+            this.bgmTimer = null;
+        }
+    }
+}
+
+const AudioSys = new GameAudioEngine();
+
+// --- Characters Data (Pixar / Disney Stylized Humanoids) ---
+const CHARACTERS = [
+    {
+        id: "lingaraj",
+        name: "Lingaraj",
+        icon: "💼",
+        gender: "male",
+        theme: "Entrepreneurship",
+        role: "Startup Founder & Hustler",
+        ability: "Venture Boost (+20% Coins)",
+        skinColor: 0xe5a67c,
+        shirtColor: 0xf8fafc, // Crisp white inner tee
+        jacketColor: 0x0284c7, // Electric blue / cyan hoodie (matching screenshot)
+        pantsColor: 0x18181b, // Dark slim athletic running joggers (matching screenshot)
+        shoesColor: 0x0284c7, // Cyan blue & white athletic high-tops
+        hairColor: 0x291d18, // Rich dark brown
+        irisColor: 0x78350f, // Warm animated brown
+        hairStyle: "pompadour",
+        accessory: "smart_watch",
+        speed: 11.0,
+        jumpForce: 9.0,
+        coinBonus: 1.2
+    },
+    {
+        id: "bhuvanesh",
+        name: "Bhuvanesh",
+        icon: "🎮",
+        gender: "male",
+        theme: "Game Development",
+        role: "Lead Gameplay Architect",
+        ability: "Glitch Shield (Extra I-Frame)",
+        skinColor: 0xe0a96d,
+        shirtColor: 0xf8fafc,
+        jacketColor: 0x7c3aed, // Purple gaming hoodie
+        pantsColor: 0x1e1b4b,
+        shoesColor: 0xec4899, // Cyber pink sneakers
+        hairColor: 0x1c1917,
+        irisColor: 0xec4899,
+        hairStyle: "anime_quiff",
+        accessory: "gamer_headset",
+        speed: 11.2,
+        jumpForce: 9.2,
+        coinBonus: 1.0
+    },
+    {
+        id: "meeha",
+        name: "Meeha",
+        icon: "💻",
+        gender: "female",
+        theme: "Full-Stack Dev",
+        role: "Full-Stack System Creator",
+        ability: "Stack Magnet (+30% Magnet Time)",
+        skinColor: 0xfbd0b0,
+        shirtColor: 0xffffff, // White inner blouse (Image 1 style)
+        jacketColor: 0x84a98c, // Sage green chic cardigan (Image 1 style)
+        pantsColor: 0xd4a373, // Beige/tan tailored chinos (Image 1 style)
+        shoesColor: 0x84a98c, // Sage green designer sneakers
+        hairColor: 0xc89666, // Warm light brown / blonde (Image 1 style)
+        irisColor: 0x3d5a40, // Soft hazel/green
+        hairStyle: "chic_bun",
+        accessory: "hoop_earrings",
+        speed: 10.8,
+        jumpForce: 8.8,
+        coinBonus: 1.0
+    },
+    {
+        id: "vedika",
+        name: "Vedika",
+        icon: "☁️",
+        gender: "female",
+        theme: "Cloud Engineering",
+        role: "Cloud DevOps & Scalability",
+        ability: "Cloud Glide (Lower Gravity)",
+        skinColor: 0xfad6bf,
+        shirtColor: 0xf8fafc,
+        jacketColor: 0x38bdf8, // Sky blue open cardigan
+        pantsColor: 0x334155,
+        shoesColor: 0x38bdf8,
+        hairColor: 0x1c1917,
+        irisColor: 0x0284c7,
+        hairStyle: "side_bangs_ponytail",
+        accessory: "hoop_earrings",
+        speed: 11.0,
+        jumpForce: 9.8,
+        coinBonus: 1.0
+    },
+    {
+        id: "lakashna",
+        name: "Lakashna",
+        icon: "🧠",
+        gender: "female",
+        theme: "AI Engineering",
+        role: "Deep Learning & Neural Matrix",
+        ability: "Neural Speed (+Score Multiplier)",
+        skinColor: 0xdeb887,
+        shirtColor: 0xf8fafc,
+        jacketColor: 0xe11d48, // Rose crimson open jacket
+        pantsColor: 0x18181b,
+        shoesColor: 0xf43f5e,
+        hairColor: 0x09090b,
+        irisColor: 0xf43f5e,
+        hairStyle: "cyber_bob_chic",
+        accessory: "hoop_earrings",
+        speed: 11.5,
+        jumpForce: 9.0,
+        coinBonus: 1.0
+    }
+];
+
+let selectedCharIndex = 0;
+let currentOutfit = 'casual';
+
+// --- Save Data ---
+const SaveData = {
+    highScore: parseInt(localStorage.getItem('dreamers_highscore') || '0'),
+    totalCoins: parseInt(localStorage.getItem('dreamers_coins') || '150'),
+    permanentMultiplier: parseInt(localStorage.getItem('dreamers_multiplier') || '1'),
+    upgrades: JSON.parse(localStorage.getItem('dreamers_upgrades') || JSON.stringify({
+        magnet: 1,
+        jetpack: 1,
+        multiplier: 1,
+        sneakers: 1
+    })),
+    save() {
+        localStorage.setItem('dreamers_highscore', this.highScore);
+        localStorage.setItem('dreamers_coins', this.totalCoins);
+        localStorage.setItem('dreamers_multiplier', this.permanentMultiplier);
+        localStorage.setItem('dreamers_upgrades', JSON.stringify(this.upgrades));
+    }
+};
+
+const LANE_WIDTH = 2.4;
+const LANES_X = [-LANE_WIDTH, 0, LANE_WIDTH];
+
+// --- 3D Scene Initialization ---
+const canvas = document.getElementById('game-canvas');
+const container = document.getElementById('canvas-container');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xfef3c7); // Morning start
+scene.fog = new THREE.FogExp2(0xfef3c7, 0.015);
+
+const camera = new THREE.PerspectiveCamera(65, container.clientWidth / container.clientHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Lighting (Realistic Sun & Skylight)
+const ambientLight = new THREE.AmbientLight(0xffedd5, 0.95);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xffedd5, 1.4);
+sunLight.position.set(20, 35, -15);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 1024;
+sunLight.shadow.mapSize.height = 1024;
+scene.add(sunLight);
+
+// Streetlamp Light
+const streetLight = new THREE.PointLight(0xfffbeb, 0.0, 25);
+streetLight.position.set(0, 5, 0);
+scene.add(streetLight);
+
+// Pre-create Materials
+const ballastTexture = createBallastTexture();
+ballastTexture.repeat.set(2, 8);
+const ballastMat = new THREE.MeshStandardMaterial({ map: ballastTexture, roughness: 0.95 });
+
+const tieTexture = createTieTexture();
+const tieMat = new THREE.MeshStandardMaterial({ map: tieTexture, roughness: 0.85 });
+
+const railMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.96, roughness: 0.12 });
+const railCapMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.98, roughness: 0.08 });
+const railBaseMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.4 });
+
+const yellowTactileTexture = createYellowTactileTexture();
+yellowTactileTexture.repeat.set(1, 16);
+const yellowTactileMat = new THREE.MeshStandardMaterial({ map: yellowTactileTexture, roughness: 0.5 });
+
+const platformMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
+const platformEdgeMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+const stationBenchMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 });
+const stationIronMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85 });
+const stationGlassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.45, roughness: 0.1 });
+const stationLightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+
+const posterTexture = createStationPosterTexture();
+const posterMat = new THREE.MeshStandardMaterial({ map: posterTexture, roughness: 0.3 });
+
+const citySignTexture = createCitySignTexture();
+const citySignMat = new THREE.MeshBasicMaterial({ map: citySignTexture });
+
+const graffitiTexture = createGraffitiTexture();
+const graffitiMat = new THREE.MeshStandardMaterial({ map: graffitiTexture, roughness: 0.4 });
+
+const billboardLimitsTexture = createBillboardLimitsTexture();
+const billboardLimitsMat = new THREE.MeshStandardMaterial({ map: billboardLimitsTexture, roughness: 0.3 });
+
+const chevronHazardTexture = createHazardChevronTexture();
+const chevronHazardMat = new THREE.MeshStandardMaterial({ map: chevronHazardTexture, roughness: 0.4 });
+
+const buildingMatBlue = new THREE.MeshStandardMaterial({ map: createBuildingFacadeTexture(200), roughness: 0.4 });
+const buildingMatPurple = new THREE.MeshStandardMaterial({ map: createBuildingFacadeTexture(270), roughness: 0.4 });
+
+const tunnelBrickTexture = createTunnelBrickTexture();
+tunnelBrickTexture.repeat.set(4, 4);
+const tunnelBrickMat = new THREE.MeshStandardMaterial({ map: tunnelBrickTexture, roughness: 0.8 });
+
+const tunnelHazardTexture = createTunnelHazardTexture();
+tunnelHazardTexture.repeat.set(4, 1);
+const tunnelHazardMat = new THREE.MeshStandardMaterial({ map: tunnelHazardTexture, roughness: 0.4 });
+
+const cautionSignTexture = createCautionSignTexture();
+const cautionSignMat = new THREE.MeshBasicMaterial({ map: cautionSignTexture });
+
+const signalGreenMat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
+const signalRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+const signalAmberMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+const concreteMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+
+// --- 3D Interactive Student Lab Room (For Main Menu) ---
+const labRoomGroup = new THREE.Group();
+scene.add(labRoomGroup);
+
+// Lab Floor & Wall
+const labFloorGeo = new THREE.BoxGeometry(16, 0.2, 16);
+const labFloorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 });
+const labFloor = new THREE.Mesh(labFloorGeo, labFloorMat);
+labFloor.position.y = -0.1;
+labRoomGroup.add(labFloor);
+
+const labWallGeo = new THREE.BoxGeometry(16, 8, 0.2);
+const labWallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+const labWall = new THREE.Mesh(labWallGeo, labWallMat);
+labWall.position.set(0, 4, 6);
+labRoomGroup.add(labWall);
+
+// Workstation Desk & Dual Monitors
+const deskGeo = new THREE.BoxGeometry(3.5, 1.2, 1.6);
+const deskMat = new THREE.MeshStandardMaterial({ color: 0x334155 });
+const desk = new THREE.Mesh(deskGeo, deskMat);
+desk.position.set(-3.0, 0.6, 2.5);
+labRoomGroup.add(desk);
+
+[-0.7, 0.7].forEach((xOff, idx) => {
+    const monGeo = new THREE.BoxGeometry(1.2, 0.7, 0.08);
+    const monMat = new THREE.MeshBasicMaterial({ color: idx === 0 ? 0x0284c7 : 0x10b981 });
+    const mon = new THREE.Mesh(monGeo, monMat);
+    mon.position.set(-3.0 + xOff, 1.6, 2.3);
+    labRoomGroup.add(mon);
+});
+
+// Student Whiteboard with Architecture Diagram
+const wbGeo = new THREE.BoxGeometry(4.5, 2.5, 0.08);
+const wbMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
+const wb = new THREE.Mesh(wbGeo, wbMat);
+wb.position.set(2.5, 3.5, 5.8);
+labRoomGroup.add(wb);
+
+// RGB Gaming / AI Rig Tower
+const rigGeo = new THREE.BoxGeometry(0.5, 0.9, 0.8);
+const rigMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
+const rig = new THREE.Mesh(rigGeo, rigMat);
+rig.position.set(-1.8, 0.45, 2.5);
+labRoomGroup.add(rig);
+
+const rgbLight = new THREE.PointLight(0x00d2ff, 1.5, 6);
+rgbLight.position.set(-1.8, 0.8, 2.5);
+labRoomGroup.add(rgbLight);
+
+// --- 3D Realistic Subway Railway Track Segments (Matching Subway Surfers Asset Pack) ---
+const TRACK_SEGMENT_LEN = 40;
+const TOTAL_TRACK_SEGMENTS = 7;
+const trackGroup = new THREE.Group();
+scene.add(trackGroup);
+const trackSegments = [];
+
+function buildRealisticTrackSegment(zPos, segIndex = 0) {
+    const seg = new THREE.Group();
+    seg.userData = { segIndex };
+
+    // 1. Gravel Ballast Roadbed
+    const ballastGeo = new THREE.BoxGeometry(LANE_WIDTH * 4.4, 0.35, TRACK_SEGMENT_LEN);
+    const ballast = new THREE.Mesh(ballastGeo, ballastMat);
+    ballast.position.y = -0.18;
+    ballast.receiveShadow = true;
+    seg.add(ballast);
+
+    // 2. Wooden Railway Ties (Sleepers) across all 3 tracks
+    const numTies = 24;
+    const tieSpacing = TRACK_SEGMENT_LEN / numTies;
+    for (let t = 0; t < numTies; t++) {
+        const tieZ = -TRACK_SEGMENT_LEN / 2 + t * tieSpacing + tieSpacing / 2;
+        const tieGeo = new THREE.BoxGeometry(LANE_WIDTH * 3.6, 0.12, 0.45);
+        const tie = new THREE.Mesh(tieGeo, tieMat);
+        tie.position.set(0, 0.02, tieZ);
+        tie.receiveShadow = true;
+        seg.add(tie);
+
+        // Steel mounting plates on each sleeper under the rails
+        LANES_X.forEach(laneX => {
+            [-0.55, 0.55].forEach(rOff => {
+                const plateGeo = new THREE.BoxGeometry(0.22, 0.04, 0.28);
+                const plate = new THREE.Mesh(plateGeo, railBaseMat);
+                plate.position.set(laneX + rOff, 0.08, tieZ);
+                seg.add(plate);
+            });
+        });
+    }
+
+    // 3. Six Chrome Gleaming Steel Rails (2 per lane)
+    LANES_X.forEach(laneX => {
+        [-0.55, 0.55].forEach(rOff => {
+            const rx = laneX + rOff;
+
+            // Rail I-Beam Base
+            const railGeo = new THREE.BoxGeometry(0.08, 0.18, TRACK_SEGMENT_LEN);
+            const rail = new THREE.Mesh(railGeo, railMat);
+            rail.position.set(rx, 0.14, 0);
+            rail.castShadow = true;
+            rail.receiveShadow = true;
+            seg.add(rail);
+
+            // Rail Top Shiny Chrome Head Cap (Specular highlight reflection)
+            const railCapGeo = new THREE.CylinderGeometry(0.035, 0.035, TRACK_SEGMENT_LEN, 8);
+            railCapGeo.rotateX(Math.PI / 2);
+            const railCap = new THREE.Mesh(railCapGeo, railCapMat);
+            railCap.position.set(rx, 0.24, 0);
+            seg.add(railCap);
+        });
+    });
+
+    // Determine if this is a Subway Tunnel Portal Segment or Open Station Segment
+    const isTunnelSegment = (segIndex % 4 === 2 || segIndex % 4 === 3);
+
+    if (isTunnelSegment) {
+        // --- SUBWAY TUNNEL PORTAL & MASONRY TUBE (Sketchfab Asset Pack) ---
+        const tunnelGroup = new THREE.Group();
+
+        // 1. Heavy Arched Tunnel Portal Entrance Frame (if at entrance)
+        if (segIndex % 4 === 2) {
+            const portalArchGroup = new THREE.Group();
+            portalArchGroup.position.set(0, 0, -TRACK_SEGMENT_LEN / 2 + 1.0);
+
+            // Left & Right Portal Masonry Columns
+            [-5.4, 5.4].forEach(x => {
+                const colGeo = new THREE.BoxGeometry(1.8, 7.5, 2.2);
+                const col = new THREE.Mesh(colGeo, concreteMat);
+                col.position.set(x, 3.75, 0);
+                col.castShadow = true;
+                portalArchGroup.add(col);
+            });
+
+            // Top Concrete Header Beam
+            const headerGeo = new THREE.BoxGeometry(12.6, 2.4, 2.2);
+            const header = new THREE.Mesh(headerGeo, concreteMat);
+            header.position.set(0, 7.2, 0);
+            header.castShadow = true;
+            portalArchGroup.add(header);
+
+            // Curved Arch Hazard Chevron Trim (Yellow/Black striped arch border)
+            const archTrimGeo = new THREE.TorusGeometry(4.6, 0.35, 8, 24, Math.PI);
+            archTrimGeo.rotateZ(Math.PI);
+            const archTrim = new THREE.Mesh(archTrimGeo, tunnelHazardMat);
+            archTrim.position.set(0, 3.8, 1.15);
+            portalArchGroup.add(archTrim);
+
+            // Overhead "CAUTION: SUBWAY TUNNEL" Sign
+            const cSignGeo = new THREE.BoxGeometry(5.2, 1.2, 0.1);
+            const cSign = new THREE.Mesh(cSignGeo, cautionSignMat);
+            cSign.position.set(0, 7.2, 1.15);
+            portalArchGroup.add(cSign);
+
+            // 3-Aspect Railway Signal Light Lanterns over each track
+            LANES_X.forEach((laneX, lIdx) => {
+                const signalBoxGeo = new THREE.BoxGeometry(0.45, 1.1, 0.3);
+                const signalBox = new THREE.Mesh(signalBoxGeo, stationIronMat);
+                signalBox.position.set(laneX, 5.4, 1.15);
+                portalArchGroup.add(signalBox);
+
+                // Red/Green Lens Indicators
+                const greenLens = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), lIdx === 1 ? signalGreenMat : signalRedMat);
+                greenLens.position.set(laneX, 5.2, 1.32);
+                portalArchGroup.add(greenLens);
+
+                const redLens = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), lIdx === 1 ? signalRedMat : signalGreenMat);
+                redLens.position.set(laneX, 5.6, 1.32);
+                portalArchGroup.add(redLens);
+            });
+
+            tunnelGroup.add(portalArchGroup);
+        }
+
+        // 2. Tunnel Masonry Ceiling Arch (Curved Brick Tube)
+        const tubeGeo = new THREE.CylinderGeometry(5.8, 5.8, TRACK_SEGMENT_LEN, 20, 1, true, Math.PI * 0.95, Math.PI * 1.1);
+        tubeGeo.rotateZ(Math.PI / 2);
+        tubeGeo.rotateY(Math.PI / 2);
+        const tube = new THREE.Mesh(tubeGeo, tunnelBrickMat);
+        tube.position.set(0, 3.2, 0);
+        tunnelGroup.add(tube);
+
+        // Tunnel Interior Amber Sodium Lighting Fixtures
+        [-12, 0, 12].forEach(zLight => {
+            const lightFixture = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.4), stationIronMat);
+            lightFixture.position.set(0, 5.9, zLight);
+            tunnelGroup.add(lightFixture);
+
+            const amberBulb = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshBasicMaterial({ color: 0xf59e0b }));
+            amberBulb.position.set(0, 5.75, zLight);
+            tunnelGroup.add(amberBulb);
+        });
+
+        // Trackside Electrical Utility Cabinets
+        const cabGeo = new THREE.BoxGeometry(0.8, 1.6, 1.2);
+        const cab = new THREE.Mesh(cabGeo, stationIronMat);
+        cab.position.set(-4.5, 0.8, -6.0);
+        tunnelGroup.add(cab);
+
+        seg.add(tunnelGroup);
+    } else {
+        // --- OPEN SUBWAY CORRIDOR, STATION PLATFORM & CATENARY GANTRY ---
+        // 4. Overhead Catenary Power Wire Gantry (Arching Truss Structure)
+        const gantry = new THREE.Group();
+        [-5.6, 5.6].forEach(x => {
+            const colGeo = new THREE.CylinderGeometry(0.12, 0.16, 7.6, 8);
+            const col = new THREE.Mesh(colGeo, stationIronMat);
+            col.position.set(x, 3.8, 0);
+            col.castShadow = true;
+            gantry.add(col);
+        });
+
+        const trussGeo = new THREE.BoxGeometry(11.8, 0.28, 0.4);
+        const truss = new THREE.Mesh(trussGeo, stationIronMat);
+        truss.position.set(0, 7.3, 0);
+        gantry.add(truss);
+
+        LANES_X.forEach(laneX => {
+            const dropGeo = new THREE.CylinderGeometry(0.02, 0.02, 1.1, 6);
+            const drop = new THREE.Mesh(dropGeo, stationIronMat);
+            drop.position.set(laneX, 6.75, 0);
+            gantry.add(drop);
+
+            const wireGeo = new THREE.CylinderGeometry(0.015, 0.015, TRACK_SEGMENT_LEN, 6);
+            wireGeo.rotateX(Math.PI / 2);
+            const wire = new THREE.Mesh(wireGeo, stationIronMat);
+            wire.position.set(laneX, 6.2, 0);
+            seg.add(wire);
+        });
+        seg.add(gantry);
+
+        // 5. Left Side Elevated Subway Station Platform
+        const platGroup = new THREE.Group();
+        platGroup.position.set(-5.6, 0, 0);
+
+        const platGeo = new THREE.BoxGeometry(3.6, 0.65, TRACK_SEGMENT_LEN);
+        const plat = new THREE.Mesh(platGeo, platformMat);
+        plat.position.y = 0.32;
+        plat.receiveShadow = true;
+        platGroup.add(plat);
+
+        const yellowGeo = new THREE.BoxGeometry(0.36, 0.03, TRACK_SEGMENT_LEN);
+        const yellowStrip = new THREE.Mesh(yellowGeo, yellowTactileMat);
+        yellowStrip.position.set(1.62, 0.66, 0);
+        platGroup.add(yellowStrip);
+
+        [-12, 12].forEach(zOff => {
+            const cPoleGeo = new THREE.CylinderGeometry(0.09, 0.11, 4.5, 8);
+            const cPole = new THREE.Mesh(cPoleGeo, stationIronMat);
+            cPole.position.set(-0.6, 2.25, zOff);
+            platGroup.add(cPole);
+
+            const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.18, 8), stationIronMat);
+            lampHead.position.set(0.4, 4.3, zOff);
+            platGroup.add(lampHead);
+
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), stationLightMat);
+            bulb.position.set(0.4, 4.2, zOff);
+            platGroup.add(bulb);
+        });
+
+        const roofGeo = new THREE.BoxGeometry(3.2, 0.12, TRACK_SEGMENT_LEN);
+        roofGeo.rotateZ(0.08);
+        const roof = new THREE.Mesh(roofGeo, stationIronMat);
+        roof.position.set(-0.2, 4.5, 0);
+        platGroup.add(roof);
+
+        const posterGeo = new THREE.BoxGeometry(0.08, 2.8, 1.8);
+        const poster = new THREE.Mesh(posterGeo, posterMat);
+        poster.position.set(0.2, 2.3, -5.0);
+        platGroup.add(poster);
+
+        const signGeo = new THREE.BoxGeometry(0.06, 0.5, 1.6);
+        const sign = new THREE.Mesh(signGeo, citySignMat);
+        sign.position.set(1.0, 3.8, 4.0);
+        platGroup.add(sign);
+
+        const benchGroup = new THREE.Group();
+        benchGroup.position.set(-0.4, 0.66, 6.0);
+        const seatGeo = new THREE.BoxGeometry(0.8, 0.08, 2.2);
+        const seat = new THREE.Mesh(seatGeo, stationBenchMat);
+        seat.position.y = 0.42;
+        benchGroup.add(seat);
+
+        const backGeo = new THREE.BoxGeometry(0.08, 0.6, 2.2);
+        const back = new THREE.Mesh(backGeo, stationBenchMat);
+        back.position.set(-0.35, 0.75, 0);
+        benchGroup.add(back);
+
+        [-0.9, 0.9].forEach(zB => {
+            const bLeg = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.42, 0.08), stationIronMat);
+            bLeg.position.set(0, 0.21, zB);
+            benchGroup.add(bLeg);
+        });
+        platGroup.add(benchGroup);
+
+        const binGeo = new THREE.BoxGeometry(0.65, 1.1, 0.65);
+        const binMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.5 });
+        const bin = new THREE.Mesh(binGeo, binMat);
+        bin.position.set(-0.5, 1.2, 11.5);
+        platGroup.add(bin);
+
+        [-14, 15].forEach(zP => {
+            const potGeo = new THREE.CylinderGeometry(0.35, 0.25, 0.6, 12);
+            const potMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
+            const pot = new THREE.Mesh(potGeo, potMat);
+            pot.position.set(-0.4, 0.95, zP);
+            platGroup.add(pot);
+
+            const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 1), new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6 }));
+            bush.position.set(-0.4, 1.45, zP);
+            platGroup.add(bush);
+        });
+
+        seg.add(platGroup);
+
+        // 6. Right Side Parked Subway Metro Train with Graffiti
+        const trainSideGroup = new THREE.Group();
+        trainSideGroup.position.set(4.8, 0, 0);
+
+        const tBodyGeo = new THREE.BoxGeometry(2.3, 3.4, TRACK_SEGMENT_LEN * 0.95);
+        const tBodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.8, roughness: 0.25 });
+        const tBody = new THREE.Mesh(tBodyGeo, tBodyMat);
+        tBody.position.y = 1.9;
+        tBody.castShadow = true;
+        trainSideGroup.add(tBody);
+
+        const blueStripeGeo = new THREE.BoxGeometry(2.34, 0.5, TRACK_SEGMENT_LEN * 0.95);
+        const blueStripeMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.3 });
+        const blueStripe = new THREE.Mesh(blueStripeGeo, blueStripeMat);
+        blueStripe.position.y = 3.3;
+        trainSideGroup.add(blueStripe);
+
+        const redStripeGeo = new THREE.BoxGeometry(2.35, 0.12, TRACK_SEGMENT_LEN * 0.95);
+        const redStripeMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+        const redStripe = new THREE.Mesh(redStripeGeo, redStripeMat);
+        redStripe.position.y = 2.95;
+        trainSideGroup.add(redStripe);
+
+        for (let w = -14; w <= 14; w += 4.5) {
+            const winGeo = new THREE.BoxGeometry(0.08, 1.1, 2.8);
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.9 });
+            const win = new THREE.Mesh(winGeo, winMat);
+            win.position.set(-1.18, 2.3, w);
+            trainSideGroup.add(win);
+        }
+
+        const grafGeo = new THREE.BoxGeometry(0.06, 1.6, 4.8);
+        const graf = new THREE.Mesh(grafGeo, graffitiMat);
+        graf.position.set(-1.19, 1.4, 0);
+        trainSideGroup.add(graf);
+
+        seg.add(trainSideGroup);
+
+        // 7. Right Skyscraper Building with "RUN BEYOND LIMITS" Billboard
+        const bHeight = 32 + Math.random() * 15;
+        const bGeo = new THREE.BoxGeometry(12, bHeight, TRACK_SEGMENT_LEN);
+        const bMesh = new THREE.Mesh(bGeo, buildingMatBlue);
+        bMesh.position.set(13.5, bHeight / 2, 0);
+        bMesh.castShadow = true;
+        seg.add(bMesh);
+
+        const bbGeo = new THREE.BoxGeometry(0.1, 4.8, 3.2);
+        const bb = new THREE.Mesh(bbGeo, billboardLimitsMat);
+        bb.position.set(7.4, 8.5, -4.0);
+        seg.add(bb);
+
+        // Trackside Railway Switch Lantern
+        const switchPole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 2.2, 8), stationIronMat);
+        switchPole.position.set(3.4, 1.1, -10);
+        const switchLamp = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.3), stationIronMat);
+        switchLamp.position.set(3.4, 2.1, -10);
+        const switchLens = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), signalGreenMat);
+        switchLens.position.set(3.4, 2.1, -9.82);
+        seg.add(switchPole);
+        seg.add(switchLamp);
+        seg.add(switchLens);
+    }
+
+    seg.position.z = zPos;
+    trackGroup.add(seg);
+    return seg;
+}
+
+let segmentSequenceCount = 0;
+for (let i = 0; i < TOTAL_TRACK_SEGMENTS; i++) {
+    trackSegments.push(buildRealisticTrackSegment(i * TRACK_SEGMENT_LEN, segmentSequenceCount++));
+}
+
+// --- 3D Rain Particle System (For Rainy Night) ---
+const rainCount = 600;
+const rainGeo = new THREE.BufferGeometry();
+const rainPositions = new Float32Array(rainCount * 3);
+for (let r = 0; r < rainCount * 3; r += 3) {
+    rainPositions[r] = (Math.random() - 0.5) * 25;
+    rainPositions[r + 1] = Math.random() * 20;
+    rainPositions[r + 2] = (Math.random() - 0.5) * 40;
+}
+rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+const rainMat = new THREE.PointsMaterial({ color: 0x93c5fd, size: 0.15, transparent: true, opacity: 0.0 });
+const rainParticles = new THREE.Points(rainGeo, rainMat);
+scene.add(rainParticles);
+
+// --- Meshy / Pixar High-Fidelity Stylized 3D Character Model Rig ---
+const playerGroup = new THREE.Group();
+scene.add(playerGroup);
+
+// Materials with Smooth Matte PBR attributes (Clay/Toon finish)
+let skinMat = new THREE.MeshStandardMaterial({ color: 0xfbd0b0, roughness: 0.45, metalness: 0.02 });
+let shirtMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55 });
+let jacketMat = new THREE.MeshStandardMaterial({ color: 0x84a98c, roughness: 0.50 });
+let jacketTrimMat = new THREE.MeshStandardMaterial({ color: 0x52796f, roughness: 0.45 });
+let pantsMat = new THREE.MeshStandardMaterial({ color: 0xd4a373, roughness: 0.65 });
+let goldMetalMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.90, roughness: 0.15 });
+let silverMetalMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.90, roughness: 0.15 });
+let hairMat = new THREE.MeshStandardMaterial({ color: 0xc89666, roughness: 0.40, metalness: 0.08 });
+let shoesAccentMat = new THREE.MeshStandardMaterial({ color: 0x84a98c, roughness: 0.45 });
+let shoeSoleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.70 });
+let shoeDarkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.50 });
+let eyeLashMat = new THREE.MeshBasicMaterial({ color: 0x18181b });
+let eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+let irisMat = new THREE.MeshBasicMaterial({ color: 0x3d5a40 });
+let pupilMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+let catchlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+let browMat = new THREE.MeshBasicMaterial({ color: 0x3e2723 });
+let lipMat = new THREE.MeshStandardMaterial({ color: 0xd97768, roughness: 0.4 });
+let glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.55, roughness: 0.1 });
+let backpackMat = new THREE.MeshStandardMaterial({ color: 0x2f3e46, roughness: 0.65 });
+let ledGlowMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+
+// 1. High-Waisted Pelvis & Streetwear Joggers Waistband
+const hipsGroup = new THREE.Group();
+hipsGroup.position.y = 1.05;
+playerGroup.add(hipsGroup);
+
+// High-waisted elastic jogger waistband
+const joggerWaistGeo = new THREE.CylinderGeometry(0.22, 0.245, 0.09, 24);
+const joggerWaist = new THREE.Mesh(joggerWaistGeo, pantsMat);
+joggerWaist.position.y = 0.08;
+joggerWaist.castShadow = true;
+hipsGroup.add(joggerWaist);
+
+// Front Drawstring Bow Knot & Dangling Strings with Gold Aglets (Matching Image View 3)
+const drawstringKnotGeo = new THREE.SphereGeometry(0.024, 8, 8);
+const drawstringKnot = new THREE.Mesh(drawstringKnotGeo, shirtMat);
+drawstringKnot.position.set(0, 0.09, 0.24);
+hipsGroup.add(drawstringKnot);
+
+// Bow Loops
+[-0.03, 0.03].forEach((xOff, idx) => {
+    const bowLoopGeo = new THREE.TorusGeometry(0.025, 0.006, 6, 12);
+    bowLoopGeo.rotateY(idx === 0 ? 0.3 : -0.3);
+    const bowLoop = new THREE.Mesh(bowLoopGeo, shirtMat);
+    bowLoop.position.set(xOff, 0.09, 0.245);
+    hipsGroup.add(bowLoop);
+});
+
+// Hanging Drawstring Cords
+[-0.025, 0.025].forEach((xOff, idx) => {
+    const cordGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.14, 8);
+    const cord = new THREE.Mesh(cordGeo, shirtMat);
+    cord.position.set(xOff, 0.01, 0.245);
+    cord.rotation.z = idx === 0 ? 0.12 : -0.12;
+    hipsGroup.add(cord);
+
+    const agletGeo = new THREE.CylinderGeometry(0.007, 0.007, 0.025, 8);
+    const aglet = new THREE.Mesh(agletGeo, goldMetalMat);
+    aglet.position.set(xOff + (idx === 0 ? 0.008 : -0.008), -0.065, 0.245);
+    hipsGroup.add(aglet);
+});
+
+// Curvy Athletic Hips & Glute Silhouette (Matching Reference Image Views 1, 2, 4)
+const hipsGeo = new THREE.SphereGeometry(0.245, 24, 24);
+hipsGeo.scale(1.06, 0.88, 1.12);
+const hips = new THREE.Mesh(hipsGeo, pantsMat);
+hips.castShadow = true;
+hipsGroup.add(hips);
+
+// Front Curved Slash Pockets with Seams
+[-0.14, 0.14].forEach((x, idx) => {
+    const pocketGeo = new THREE.TorusGeometry(0.085, 0.014, 8, 14, Math.PI * 0.65);
+    pocketGeo.rotateZ(idx === 0 ? -0.42 : 0.42);
+    const pocket = new THREE.Mesh(pocketGeo, jacketTrimMat);
+    pocket.position.set(x, 0.02, 0.19);
+    hipsGroup.add(pocket);
+});
+
+// 2. Torso / Cropped Streetwear Hoodie & Exposed Athletic Midriff
+const spine = new THREE.Group();
+spine.position.y = 1.38;
+playerGroup.add(spine);
+
+// Exposed Athletic Midriff (Skin tone between cropped hoodie & high-waisted joggers)
+const midriffGeo = new THREE.CylinderGeometry(0.19, 0.215, 0.13, 24);
+const midriff = new THREE.Mesh(midriffGeo, skinMat);
+midriff.position.y = -0.16;
+midriff.castShadow = true;
+spine.add(midriff);
+
+// Subtle Navel / Belly Button Indentation (Matching Reference View 3)
+const navelGeo = new THREE.SphereGeometry(0.012, 8, 8);
+navelGeo.scale(1.0, 1.3, 0.5);
+const navelMat = new THREE.MeshStandardMaterial({ color: 0xd49b73, roughness: 0.7 });
+const navel = new THREE.Mesh(navelGeo, navelMat);
+navel.position.set(0, -0.16, 0.205);
+spine.add(navel);
+
+// Cropped Hoodie Bottom Ribbed Hem
+const hoodieHemGeo = new THREE.CylinderGeometry(0.215, 0.205, 0.06, 24);
+const hoodieHem = new THREE.Mesh(hoodieHemGeo, jacketTrimMat);
+hoodieHem.position.y = -0.08;
+hoodieHem.castShadow = true;
+spine.add(hoodieHem);
+
+// Cropped Hoodie Main Body
+const hoodieGeo = new THREE.CylinderGeometry(0.25, 0.225, 0.38, 24);
+const hoodie = new THREE.Mesh(hoodieGeo, jacketMat);
+hoodie.position.y = 0.14;
+hoodie.castShadow = true;
+spine.add(hoodie);
+
+// Subtle Cyber Tech Badge on Chest
+const badgeGeo = new THREE.BoxGeometry(0.08, 0.06, 0.02);
+const badgeMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+const badge = new THREE.Mesh(badgeGeo, badgeMat);
+badge.position.set(-0.12, 0.20, 0.23);
+spine.add(badge);
+
+// High-Tech Runner Backpack with Glowing Cyan Triangle Logo (Matching Screenshot)
+const backpackGroup = new THREE.Group();
+backpackGroup.position.set(0, 0.14, -0.24);
+
+const packBodyGeo = new THREE.BoxGeometry(0.32, 0.44, 0.16);
+const packBody = new THREE.Mesh(packBodyGeo, backpackMat);
+packBody.castShadow = true;
+backpackGroup.add(packBody);
+
+// Backpack Straps
+[-0.12, 0.12].forEach(x => {
+    const strapGeo = new THREE.TorusGeometry(0.22, 0.025, 6, 16, Math.PI * 0.7);
+    strapGeo.rotateY(Math.PI / 2);
+    const strap = new THREE.Mesh(strapGeo, backpackMat);
+    strap.position.set(x, 0.06, 0.20);
+    backpackGroup.add(strap);
+});
+
+// Glowing Cyan Triangle Logo (Matching Reference Image)
+const triShape = new THREE.Shape();
+triShape.moveTo(0, 0.07);
+triShape.lineTo(-0.065, -0.05);
+triShape.lineTo(0.065, -0.05);
+triShape.closePath();
+const triGeo = new THREE.ShapeGeometry(triShape);
+const triMesh = new THREE.Mesh(triGeo, ledGlowMat);
+triMesh.position.set(0, 0.02, -0.082);
+triMesh.rotation.y = Math.PI;
+backpackGroup.add(triMesh);
+
+spine.add(backpackGroup);
+
+// 3. Neck & Head (Sculpted Face & High Messy Top-Knot Bun)
+const neckGeo = new THREE.CylinderGeometry(0.078, 0.092, 0.22, 16);
+const neck = new THREE.Mesh(neckGeo, skinMat);
+neck.position.y = 1.76;
+playerGroup.add(neck);
+
+const headGroup = new THREE.Group();
+headGroup.position.y = 2.02;
+playerGroup.add(headGroup);
+
+// Sculpted Smooth Oval Head
+const headGeo = new THREE.SphereGeometry(0.24, 32, 32);
+headGeo.scale(1.0, 1.14, 0.96);
+const head = new THREE.Mesh(headGeo, skinMat);
+head.castShadow = true;
+headGroup.add(head);
+
+// Cute Rounded Chin & Jaw
+const chinGeo = new THREE.SphereGeometry(0.08, 16, 16);
+chinGeo.scale(1.0, 0.72, 1.1);
+const chin = new THREE.Mesh(chinGeo, skinMat);
+chin.position.set(0, -0.19, 0.12);
+headGroup.add(chin);
+
+// Left & Right Ears
+[-0.235, 0.235].forEach(x => {
+    const earGeo = new THREE.SphereGeometry(0.055, 12, 12);
+    earGeo.scale(0.45, 1.2, 0.85);
+    const ear = new THREE.Mesh(earGeo, skinMat);
+    ear.position.set(x, 0.0, -0.02);
+    headGroup.add(ear);
+});
+
+// Large Expressive Pixar 3D Eyes with Eyelashes & Dual Catchlights
+[-0.085, 0.085].forEach((xOff, idx) => {
+    // Upper Eyelash / Eyelid Contour
+    const lashGeo = new THREE.TorusGeometry(0.052, 0.007, 8, 16, Math.PI * 0.85);
+    const lash = new THREE.Mesh(lashGeo, eyeLashMat);
+    lash.position.set(xOff, 0.058, 0.215);
+    lash.rotation.z = idx === 0 ? 0.2 : -0.2;
+    headGroup.add(lash);
+
+    // Sclera (Whites)
+    const eyeWhiteGeo = new THREE.SphereGeometry(0.055, 16, 16);
+    eyeWhiteGeo.scale(1.1, 1.25, 0.45);
+    const eyeWhite = new THREE.Mesh(eyeWhiteGeo, eyeWhiteMat);
+    eyeWhite.position.set(xOff, 0.04, 0.205);
+    headGroup.add(eyeWhite);
+
+    // Large Animated Iris
+    const eyeIrisGeo = new THREE.SphereGeometry(0.038, 16, 16);
+    eyeIrisGeo.scale(1.0, 1.0, 0.35);
+    const eyeIris = new THREE.Mesh(eyeIrisGeo, irisMat);
+    eyeIris.position.set(xOff, 0.038, 0.224);
+    headGroup.add(eyeIris);
+
+    // Dark Pupil
+    const eyePupilGeo = new THREE.SphereGeometry(0.022, 12, 12);
+    eyePupilGeo.scale(1.0, 1.0, 0.35);
+    const eyePupil = new THREE.Mesh(eyePupilGeo, pupilMat);
+    eyePupil.position.set(xOff, 0.038, 0.233);
+    headGroup.add(eyePupil);
+
+    // Primary Specular Catchlight (Top-Right)
+    const catchlight1Geo = new THREE.SphereGeometry(0.009, 8, 8);
+    const catchlight1 = new THREE.Mesh(catchlight1Geo, catchlightMat);
+    catchlight1.position.set(xOff + 0.012, 0.052, 0.244);
+    headGroup.add(catchlight1);
+
+    // Secondary Specular Catchlight (Bottom-Left Disney glint)
+    const catchlight2Geo = new THREE.SphereGeometry(0.005, 8, 8);
+    const catchlight2 = new THREE.Mesh(catchlight2Geo, catchlightMat);
+    catchlight2.position.set(xOff - 0.010, 0.028, 0.242);
+    headGroup.add(catchlight2);
+
+    // Arched Soft Eyebrow
+    const browGeo = new THREE.CylinderGeometry(0.014, 0.008, 0.09, 8);
+    browGeo.rotateZ(Math.PI / 2);
+    const brow = new THREE.Mesh(browGeo, browMat);
+    brow.position.set(xOff, 0.115, 0.22);
+    brow.rotation.z = idx === 0 ? 0.12 : -0.12;
+    headGroup.add(brow);
+});
+
+// Cute Rounded Button Nose
+const noseGeo = new THREE.SphereGeometry(0.032, 14, 14);
+noseGeo.scale(1.1, 0.85, 1.2);
+const nose = new THREE.Mesh(noseGeo, skinMat);
+nose.position.set(0, -0.01, 0.24);
+headGroup.add(nose);
+
+// Soft Smiling Lips
+const mouthGeo = new THREE.CylinderGeometry(0.018, 0.018, 0.095, 12);
+mouthGeo.rotateZ(Math.PI / 2);
+const mouth = new THREE.Mesh(mouthGeo, lipMat);
+mouth.position.set(0, -0.11, 0.22);
+headGroup.add(mouth);
+
+const hairAndAccGroup = new THREE.Group();
+headGroup.add(hairAndAccGroup);
+
+let dynamicPonytailBone = null;
+
+function rebuildCharacterHairAndAcc(char) {
+    while (hairAndAccGroup.children.length > 0) {
+        hairAndAccGroup.remove(hairAndAccGroup.children[0]);
+    }
+    dynamicPonytailBone = null;
+
+    const isFemale = char.gender === 'female';
+
+    if (isFemale) {
+        // --- 1. Female High Messy Top-Knot Bun (Matching Meshy Reference Image 100%) ---
+        const scalpGeo = new THREE.SphereGeometry(0.255, 24, 24);
+        scalpGeo.scale(1.03, 1.12, 1.02);
+        const scalp = new THREE.Mesh(scalpGeo, hairMat);
+        scalp.position.set(0, 0.04, -0.02);
+        hairAndAccGroup.add(scalp);
+
+        // Gold Hair Tie Ring on Bun Base
+        const bunBaseGeo = new THREE.TorusGeometry(0.08, 0.022, 10, 20);
+        bunBaseGeo.rotateX(Math.PI / 2);
+        const bunTie = new THREE.Mesh(bunBaseGeo, goldMetalMat);
+        bunTie.position.set(0, 0.26, 0.02);
+        hairAndAccGroup.add(bunTie);
+
+        // Voluminous High Messy Top-Knot Bun sitting at crown
+        const bunMeshGeo = new THREE.SphereGeometry(0.145, 18, 18);
+        bunMeshGeo.scale(1.15, 0.98, 1.12);
+        const bunMesh = new THREE.Mesh(bunMeshGeo, hairMat);
+        bunMesh.position.set(0, 0.36, 0.02);
+        bunMesh.rotation.x = -0.15;
+        hairAndAccGroup.add(bunMesh);
+
+        // Layered wavy coils wrapped on top of the bun (Matching Reference Image Curls)
+        [
+            { x: -0.06, y: 0.38, z: 0.02, ry: 0.4, rz: 0.2 },
+            { x: 0.06, y: 0.38, z: 0.02, ry: -0.4, rz: -0.2 },
+            { x: 0.0, y: 0.42, z: -0.02, ry: 1.2, rz: 0.0 },
+            { x: 0.0, y: 0.36, z: 0.08, ry: 0.0, rz: 0.3 }
+        ].forEach(coilData => {
+            const coilGeo = new THREE.TorusGeometry(0.065, 0.028, 8, 16);
+            coilGeo.rotateY(coilData.ry);
+            coilGeo.rotateZ(coilData.rz);
+            const coil = new THREE.Mesh(coilGeo, hairMat);
+            coil.position.set(coilData.x, coilData.y, coilData.z);
+            hairAndAccGroup.add(coil);
+        });
+
+        // Face-Framing Wispy Tendril Strands (falling gracefully down past cheeks)
+        [-0.18, 0.18].forEach((x, idx) => {
+            const tendrilGeo = new THREE.CylinderGeometry(0.016, 0.006, 0.38, 8);
+            const tendril = new THREE.Mesh(tendrilGeo, hairMat);
+            tendril.position.set(x, -0.06, 0.14);
+            tendril.rotation.z = idx === 0 ? 0.15 : -0.15;
+            tendril.rotation.x = 0.20;
+            hairAndAccGroup.add(tendril);
+        });
+
+        // Forehead Bangs / Wisps
+        [-0.08, 0.08].forEach((x, idx) => {
+            const bangGeo = new THREE.CylinderGeometry(0.014, 0.008, 0.18, 8);
+            const bang = new THREE.Mesh(bangGeo, hairMat);
+            bang.position.set(x, 0.16, 0.20);
+            bang.rotation.z = idx === 0 ? 0.3 : -0.3;
+            bang.rotation.x = 0.4;
+            hairAndAccGroup.add(bang);
+        });
+
+        // Back Wispy Tendrils at nape of neck
+        [-0.10, 0.10].forEach(x => {
+            const backStrandGeo = new THREE.CylinderGeometry(0.014, 0.005, 0.26, 8);
+            const backStrand = new THREE.Mesh(backStrandGeo, hairMat);
+            backStrand.position.set(x, -0.15, -0.18);
+            backStrand.rotation.x = -0.25;
+            hairAndAccGroup.add(backStrand);
+        });
+
+        // Gold Hoop Earrings
+        [-0.24, 0.24].forEach(x => {
+            const hoopGeo = new THREE.TorusGeometry(0.048, 0.008, 12, 24);
+            const hoop = new THREE.Mesh(hoopGeo, goldMetalMat);
+            hoop.position.set(x, -0.045, -0.01);
+            hoop.rotation.y = Math.PI / 2;
+            hairAndAccGroup.add(hoop);
+        });
+
+        // Folded Hoodie around back of neck (Cropped Hoodie Hood - Matching Views 1, 2, 4)
+        const hoodGeo = new THREE.TorusGeometry(0.19, 0.065, 12, 24);
+        hoodGeo.rotateX(Math.PI / 3);
+        const hoodMesh = new THREE.Mesh(hoodGeo, jacketMat);
+        hoodMesh.position.set(0, -0.28, -0.14);
+        hairAndAccGroup.add(hoodMesh);
+
+        // Hoodie Drawstrings hanging down chest
+        [-0.06, 0.06].forEach(xOff => {
+            const stringGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.18, 8);
+            const stringMesh = new THREE.Mesh(stringGeo, shirtMat);
+            stringMesh.position.set(xOff, -0.38, 0.16);
+            hairAndAccGroup.add(stringMesh);
+
+            const tipGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.025, 8);
+            const tipMesh = new THREE.Mesh(tipGeo, goldMetalMat);
+            tipMesh.position.set(xOff, -0.48, 0.16);
+            hairAndAccGroup.add(tipMesh);
+        });
+    } else {
+        // --- 2. Male Voluminous Pompadour Quiff & Athletic Hoodie ---
+        const hairBaseGeo = new THREE.SphereGeometry(0.245, 20, 20);
+        hairBaseGeo.scale(1.02, 1.10, 0.98);
+        const hairBase = new THREE.Mesh(hairBaseGeo, hairMat);
+        hairBase.position.set(0, 0.05, -0.02);
+        hairAndAccGroup.add(hairBase);
+
+        const quiffGeo = new THREE.SphereGeometry(0.18, 16, 16);
+        quiffGeo.scale(1.1, 0.9, 1.4);
+        const quiff = new THREE.Mesh(quiffGeo, hairMat);
+        quiff.position.set(0, 0.22, 0.06);
+        quiff.rotation.x = -0.3;
+        hairAndAccGroup.add(quiff);
+
+        const waveGeo = new THREE.SphereGeometry(0.12, 12, 12);
+        waveGeo.scale(1.3, 0.8, 1.1);
+        const wave = new THREE.Mesh(waveGeo, hairMat);
+        wave.position.set(0.03, 0.25, 0.14);
+        wave.rotation.x = -0.2;
+        hairAndAccGroup.add(wave);
+
+        // Male Folded Athletic Hood
+        const hoodGeo = new THREE.TorusGeometry(0.19, 0.055, 12, 24);
+        hoodGeo.rotateX(Math.PI / 3);
+        const hoodMesh = new THREE.Mesh(hoodGeo, jacketMat);
+        hoodMesh.position.set(0, -0.28, -0.14);
+        hairAndAccGroup.add(hoodMesh);
+
+        // Male Hoodie Strings
+        [-0.07, 0.07].forEach(xOff => {
+            const stringGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.20, 8);
+            const stringMesh = new THREE.Mesh(stringGeo, shirtMat);
+            stringMesh.position.set(xOff, -0.38, 0.16);
+            hairAndAccGroup.add(stringMesh);
+        });
+
+        if (char.accessory === 'gamer_headset') {
+            [-0.26, 0.26].forEach((x, idx) => {
+                const earpadGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.06, 16);
+                earpadGeo.rotateZ(Math.PI / 2);
+                const earpad = new THREE.Mesh(earpadGeo, backpackMat);
+                earpad.position.set(x, 0.0, 0);
+                hairAndAccGroup.add(earpad);
+
+                const rgbRingGeo = new THREE.TorusGeometry(0.065, 0.012, 8, 16);
+                rgbRingGeo.rotateY(Math.PI / 2);
+                const rgbMat = new THREE.MeshBasicMaterial({ color: 0xec4899 });
+                const rgbRing = new THREE.Mesh(rgbRingGeo, rgbMat);
+                rgbRing.position.set(x + (idx === 0 ? -0.03 : 0.03), 0.0, 0);
+                hairAndAccGroup.add(rgbRing);
+            });
+
+            const bandGeo = new THREE.TorusGeometry(0.26, 0.022, 8, 24, Math.PI);
+            const band = new THREE.Mesh(bandGeo, backpackMat);
+            band.position.set(0, 0.06, 0);
+            band.rotation.z = Math.PI;
+            hairAndAccGroup.add(band);
+        }
+    }
+}
+
+// 4. Smooth 3/4 Pushed-Up Sleeves & Articulated Limbs
+const leftArmGroup = new THREE.Group();
+leftArmGroup.position.set(-0.32, 1.58, 0);
+playerGroup.add(leftArmGroup);
+
+const armGeo = new THREE.CylinderGeometry(0.082, 0.075, 0.28, 16);
+const leftUpperArm = new THREE.Mesh(armGeo, jacketMat);
+leftUpperArm.position.y = -0.14;
+leftUpperArm.castShadow = true;
+leftArmGroup.add(leftUpperArm);
+
+const leftSleeveCuffGeo = new THREE.TorusGeometry(0.075, 0.02, 8, 16);
+leftSleeveCuffGeo.rotateX(Math.PI / 2);
+const leftSleeveCuff = new THREE.Mesh(leftSleeveCuffGeo, jacketTrimMat);
+leftSleeveCuff.position.y = -0.28;
+leftArmGroup.add(leftSleeveCuff);
+
+const leftForearmGroup = new THREE.Group();
+leftForearmGroup.position.set(0, -0.30, 0);
+leftArmGroup.add(leftForearmGroup);
+
+const forearmGeo = new THREE.CylinderGeometry(0.06, 0.052, 0.28, 16);
+const leftForearm = new THREE.Mesh(forearmGeo, skinMat);
+leftForearm.position.y = -0.14;
+leftForearm.castShadow = true;
+leftForearmGroup.add(leftForearm);
+
+// Stylized Gold Smart Watch
+const watchGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.05, 16);
+const watch = new THREE.Mesh(watchGeo, goldMetalMat);
+watch.position.y = -0.20;
+leftForearmGroup.add(watch);
+
+const handGeo = new THREE.SphereGeometry(0.058, 12, 12);
+handGeo.scale(0.8, 1.2, 0.9);
+const leftHand = new THREE.Mesh(handGeo, skinMat);
+leftHand.position.set(0, -0.30, 0.02);
+leftForearmGroup.add(leftHand);
+
+const rightArmGroup = new THREE.Group();
+rightArmGroup.position.set(0.32, 1.58, 0);
+playerGroup.add(rightArmGroup);
+
+const rightUpperArm = new THREE.Mesh(armGeo, jacketMat);
+rightUpperArm.position.y = -0.14;
+rightUpperArm.castShadow = true;
+rightArmGroup.add(rightUpperArm);
+
+const rightSleeveCuff = new THREE.Mesh(leftSleeveCuffGeo, jacketTrimMat);
+rightSleeveCuff.position.y = -0.28;
+rightArmGroup.add(rightSleeveCuff);
+
+const rightForearmGroup = new THREE.Group();
+rightForearmGroup.position.set(0, -0.30, 0);
+rightArmGroup.add(rightForearmGroup);
+
+const rightForearm = new THREE.Mesh(forearmGeo, skinMat);
+rightForearm.position.y = -0.14;
+rightForearm.castShadow = true;
+rightForearmGroup.add(rightForearm);
+
+const rightHand = new THREE.Mesh(handGeo, skinMat);
+rightHand.position.set(0, -0.30, 0.02);
+rightForearmGroup.add(rightHand);
+
+// 5. High-Waisted Baggy Joggers & Chunky High-Top Runner Sneakers
+function buildSneakerMesh() {
+    const shoe = new THREE.Group();
+
+    // Dark Rubber Outsole Tread
+    const treadGeo = new THREE.CylinderGeometry(0.115, 0.118, 0.03, 16);
+    treadGeo.scale(1.0, 1.0, 2.05);
+    const tread = new THREE.Mesh(treadGeo, shoeDarkMat);
+    tread.position.set(0, -0.07, 0.06);
+    shoe.add(tread);
+
+    // Chunky Rounded White Rubber Midsole (Matching Reference Image)
+    const soleGeo = new THREE.CylinderGeometry(0.112, 0.115, 0.07, 16);
+    soleGeo.scale(1.0, 1.0, 2.0);
+    const sole = new THREE.Mesh(soleGeo, shoeSoleMat);
+    sole.position.set(0, -0.03, 0.06);
+    sole.castShadow = true;
+    shoe.add(sole);
+
+    // Front Rounded Toe Bumper
+    const toeGeo = new THREE.SphereGeometry(0.105, 12, 12);
+    toeGeo.scale(1.0, 0.7, 1.1);
+    const toe = new THREE.Mesh(toeGeo, shoeSoleMat);
+    toe.position.set(0, 0.01, 0.22);
+    shoe.add(toe);
+
+    // Sneaker Upper Body
+    const upperGeo = new THREE.CylinderGeometry(0.095, 0.10, 0.14, 16);
+    upperGeo.scale(0.95, 1.0, 1.8);
+    const upper = new THREE.Mesh(upperGeo, shoesAccentMat);
+    upper.position.set(0, 0.06, 0.05);
+    upper.castShadow = true;
+    shoe.add(upper);
+
+    // High-Top Ankle Collar Padded Rim
+    const collarShoeGeo = new THREE.CylinderGeometry(0.082, 0.082, 0.11, 16);
+    const collarShoe = new THREE.Mesh(collarShoeGeo, shoesAccentMat);
+    collarShoe.position.set(0, 0.14, -0.02);
+    shoe.add(collarShoe);
+
+    // Heel Pull Tab
+    const tabGeo = new THREE.BoxGeometry(0.025, 0.06, 0.015);
+    const tab = new THREE.Mesh(tabGeo, goldMetalMat);
+    tab.position.set(0, 0.18, -0.10);
+    shoe.add(tab);
+
+    // White Criss-Cross Laces & Sneaker Tongue
+    [-0.01, 0.05, 0.11, 0.16].forEach(z => {
+        const laceGeo = new THREE.BoxGeometry(0.10, 0.018, 0.025);
+        const lace = new THREE.Mesh(laceGeo, shoeSoleMat);
+        lace.position.set(0, 0.12, z);
+        shoe.add(lace);
+    });
+
+    return shoe;
+}
+
+const leftLegGroup = new THREE.Group();
+leftLegGroup.position.set(-0.16, 0.98, 0);
+playerGroup.add(leftLegGroup);
+
+// Relaxed Baggy Jogger Thigh with Streetwear Sag
+const thighGeo = new THREE.CylinderGeometry(0.12, 0.095, 0.44, 16);
+const leftThigh = new THREE.Mesh(thighGeo, pantsMat);
+leftThigh.position.y = -0.22;
+leftThigh.castShadow = true;
+leftLegGroup.add(leftThigh);
+
+const leftShinGroup = new THREE.Group();
+leftShinGroup.position.set(0, -0.44, 0);
+leftLegGroup.add(leftShinGroup);
+
+// Tapered Jogger Calf with Folds
+const shinGeo = new THREE.CylinderGeometry(0.095, 0.072, 0.40, 16);
+const leftShin = new THREE.Mesh(shinGeo, pantsMat);
+leftShin.position.y = -0.20;
+leftShin.castShadow = true;
+leftShinGroup.add(leftShin);
+
+// Gathered Fabric Fold above cuff
+const foldGeo = new THREE.TorusGeometry(0.082, 0.022, 8, 16);
+foldGeo.rotateX(Math.PI / 2);
+const leftFold = new THREE.Mesh(foldGeo, pantsMat);
+leftFold.position.y = -0.34;
+leftShinGroup.add(leftFold);
+
+// Cinched Ribbed Jogger Cuff
+const joggerCuffGeo = new THREE.TorusGeometry(0.070, 0.018, 8, 16);
+joggerCuffGeo.rotateX(Math.PI / 2);
+const leftJoggerCuff = new THREE.Mesh(joggerCuffGeo, jacketTrimMat);
+leftJoggerCuff.position.y = -0.38;
+leftShinGroup.add(leftJoggerCuff);
+
+// Exposed Ankle Skin (Skin showing between jogger cuff & sneaker collar)
+const ankleGeo = new THREE.CylinderGeometry(0.052, 0.052, 0.08, 16);
+const leftAnkle = new THREE.Mesh(ankleGeo, skinMat);
+leftAnkle.position.y = -0.42;
+leftShinGroup.add(leftAnkle);
+
+const leftShoe = buildSneakerMesh();
+leftShoe.position.set(0, -0.46, 0.04);
+leftShinGroup.add(leftShoe);
+
+const rightLegGroup = new THREE.Group();
+rightLegGroup.position.set(0.16, 0.98, 0);
+playerGroup.add(rightLegGroup);
+
+const rightThigh = new THREE.Mesh(thighGeo, pantsMat);
+rightThigh.position.y = -0.22;
+rightThigh.castShadow = true;
+rightLegGroup.add(rightThigh);
+
+const rightShinGroup = new THREE.Group();
+rightShinGroup.position.set(0, -0.44, 0);
+rightLegGroup.add(rightShinGroup);
+
+const rightShin = new THREE.Mesh(shinGeo, pantsMat);
+rightShin.position.y = -0.20;
+rightShin.castShadow = true;
+rightShinGroup.add(rightShin);
+
+const rightFold = new THREE.Mesh(foldGeo, pantsMat);
+rightFold.position.y = -0.34;
+rightShinGroup.add(rightFold);
+
+const rightJoggerCuff = new THREE.Mesh(joggerCuffGeo, jacketTrimMat);
+rightJoggerCuff.position.y = -0.38;
+rightShinGroup.add(rightJoggerCuff);
+
+const rightAnkle = new THREE.Mesh(ankleGeo, skinMat);
+rightAnkle.position.y = -0.42;
+rightShinGroup.add(rightAnkle);
+
+const rightShoe = buildSneakerMesh();
+rightShoe.position.set(0, -0.46, 0.04);
+rightShinGroup.add(rightShoe);
+
+// Upgraded Aerodynamic Cyber Hoverboard
+const hoverboardGroup = new THREE.Group();
+const boardDeckGeo = new THREE.BoxGeometry(0.72, 0.08, 1.75);
+const boardDeckMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.2, emissive: 0x0369a1, emissiveIntensity: 0.3 });
+const boardDeck = new THREE.Mesh(boardDeckGeo, boardDeckMat);
+boardDeck.position.y = 0.08;
+boardDeck.castShadow = true;
+hoverboardGroup.add(boardDeck);
+
+const gripGeo = new THREE.BoxGeometry(0.64, 0.02, 1.6);
+const gripMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.95 });
+const grip = new THREE.Mesh(gripGeo, gripMat);
+grip.position.y = 0.13;
+hoverboardGroup.add(grip);
+
+[-0.45, 0.45].forEach(z => {
+    const ringGeo = new THREE.TorusGeometry(0.22, 0.04, 8, 16);
+    ringGeo.rotateX(Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.set(0, 0.03, z);
+    hoverboardGroup.add(ring);
+});
+
+[-0.34, 0.34].forEach(x => {
+    const railGeo = new THREE.BoxGeometry(0.04, 0.03, 1.6);
+    const railMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+    const rail = new THREE.Mesh(railGeo, railMat);
+    rail.position.set(x, 0.04, 0);
+    hoverboardGroup.add(rail);
+});
+
+hoverboardGroup.visible = false;
+playerGroup.add(hoverboardGroup);
+
+// Upgraded High-Tech Rocket Jetpack
+const jetpackGroup = new THREE.Group();
+[-0.22, 0.22].forEach(x => {
+    const turbineGeo = new THREE.CylinderGeometry(0.12, 0.15, 0.72, 16);
+    const turbineMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.8, roughness: 0.3 });
+    const turbine = new THREE.Mesh(turbineGeo, turbineMat);
+    turbine.position.set(x, 1.45, -0.32);
+    turbine.castShadow = true;
+    jetpackGroup.add(turbine);
+
+    const nozzleGeo = new THREE.CylinderGeometry(0.13, 0.08, 0.14, 16);
+    const nozzleMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.9 });
+    const nozzle = new THREE.Mesh(nozzleGeo, nozzleMat);
+    nozzle.position.set(x, 1.05, -0.32);
+    jetpackGroup.add(nozzle);
+
+    const flameGeo = new THREE.ConeGeometry(0.10, 0.35, 8);
+    flameGeo.rotateX(Math.PI);
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0x00d2ff });
+    const flame = new THREE.Mesh(flameGeo, flameMat);
+    flame.position.set(x, 0.82, -0.32);
+    jetpackGroup.add(flame);
+});
+jetpackGroup.visible = false;
+playerGroup.add(jetpackGroup);
+
+// --- Real-World Environmental Life & AI Systems ---
+const activeObstacles = [];
+const activeCoins = [];
+const activePowerupItems = [];
+const activePigeons = [];
+
+const starCoinMat = new THREE.MeshStandardMaterial({
+    color: 0xfbbf24,
+    metalness: 0.95,
+    roughness: 0.12,
+    emissive: 0xd97706,
+    emissiveIntensity: 0.45
+});
+
+function createStarCoinMesh() {
+    const coinGroup = new THREE.Group();
+
+    // 3D Outer Coin Cylinder
+    const bodyGeo = new THREE.CylinderGeometry(0.36, 0.36, 0.08, 20);
+    bodyGeo.rotateX(Math.PI / 2);
+    const body = new THREE.Mesh(bodyGeo, starCoinMat);
+    coinGroup.add(body);
+
+    // Raised Outer Gold Rim
+    const rimGeo = new THREE.TorusGeometry(0.34, 0.035, 8, 20);
+    const rim = new THREE.Mesh(rimGeo, starCoinMat);
+    coinGroup.add(rim);
+
+    // 5-Point Embossed 3D Star on Front and Back
+    [-0.045, 0.045].forEach(z => {
+        const starShape = new THREE.Shape();
+        const outerR = 0.22;
+        const innerR = 0.09;
+        for (let i = 0; i < 10; i++) {
+            const angle = (i * Math.PI) / 5 - Math.PI / 2;
+            const r = i % 2 === 0 ? outerR : innerR;
+            const x = Math.cos(angle) * r;
+            const y = Math.sin(angle) * r;
+            if (i === 0) starShape.moveTo(x, y);
+            else starShape.lineTo(x, y);
+        }
+        starShape.closePath();
+        const starExtrudeGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.02, bevelEnabled: false });
+        const starMesh = new THREE.Mesh(starExtrudeGeo, starCoinMat);
+        starMesh.position.z = z > 0 ? 0.04 : -0.06;
+        coinGroup.add(starMesh);
+    });
+
+    coinGroup.userData = { type: 'coin' };
+    return coinGroup;
+}
+
+// 1. Scattering Pigeons Flock
+function createPigeonFlock() {
+    const flock = new THREE.Group();
+    for (let p = 0; p < 4; p++) {
+        const bird = new THREE.Group();
+        const bBody = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 6), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+        bBody.rotateX(Math.PI / 2);
+        bird.add(bBody);
+
+        const wingL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.02, 0.15), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+        wingL.position.x = -0.15;
+        bird.add(wingL);
+        const wingR = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.02, 0.15), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+        wingR.position.x = 0.15;
+        bird.add(wingR);
+
+        bird.position.set((Math.random() - 0.5) * 1.5, 0.15, (Math.random() - 0.5) * 1.5);
+        flock.add(bird);
+    }
+    flock.userData = { type: 'pigeons', scattered: false, velY: 0 };
+    return flock;
+}
+
+// 2. Red & White Chevron Hazard Buffer Stop Barrier (Exact Match to Center Obstacle in Screenshot)
+function createBufferStopBarrier() {
+    const barrier = new THREE.Group();
+
+    // Steel Vertical Posts mounted to rails
+    [-0.65, 0.65].forEach(x => {
+        const postGeo = new THREE.BoxGeometry(0.16, 1.35, 0.16);
+        const post = new THREE.Mesh(postGeo, stationIronMat);
+        post.position.set(x, 0.675, 0);
+        post.castShadow = true;
+        barrier.add(post);
+
+        // Angled back brace support
+        const braceGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.2, 8);
+        braceGeo.rotateX(Math.PI / 4);
+        const brace = new THREE.Mesh(braceGeo, stationIronMat);
+        brace.position.set(x, 0.45, 0.45);
+        barrier.add(brace);
+    });
+
+    // Large Chevron Hazard Barrier Face
+    const panelGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.9, 1.15, 0.15);
+    const panel = new THREE.Mesh(panelGeo, chevronHazardMat);
+    panel.position.set(0, 0.85, -0.05);
+    panel.castShadow = true;
+    barrier.add(panel);
+
+    // Heavy Rubber Bumper Pads
+    [-0.6, 0.6].forEach(x => {
+        const padGeo = new THREE.BoxGeometry(0.24, 0.28, 0.22);
+        const pad = new THREE.Mesh(padGeo, shoeDarkMat);
+        pad.position.set(x, 0.85, -0.15);
+        barrier.add(pad);
+    });
+
+    barrier.userData = { type: 'barrier', isObstacle: true, height: 1.4 };
+    return barrier;
+}
+
+// 3. Realistic Commuter Metro Train (Red & Silver with Headlights)
+function createSubwayTrainMesh() {
+    const train = new THREE.Group();
+    const bodyGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.92, 3.2, 16);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.7, roughness: 0.3 });
+    const trainBody = new THREE.Mesh(bodyGeo, bodyMat);
+    trainBody.position.y = 1.6;
+    trainBody.castShadow = true;
+    trainBody.receiveShadow = true;
+    train.add(trainBody);
+
+    // Front Red Cab Mask
+    const cabGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.94, 2.0, 1.0);
+    const cabMat = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
+    const cab = new THREE.Mesh(cabGeo, cabMat);
+    cab.position.set(0, 1.8, -7.6);
+    train.add(cab);
+
+    // Front Windshield Glass
+    const windowGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.8, 0.85, 0.2);
+    const windowMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0369a1, emissiveIntensity: 0.7 });
+    const frontWindow = new THREE.Mesh(windowGeo, windowMat);
+    frontWindow.position.set(0, 2.2, -8.12);
+    train.add(frontWindow);
+
+    // Glowing Front Headlights
+    [-0.5, 0.5].forEach(xOff => {
+        const lightGeo = new THREE.SphereGeometry(0.18, 8, 8);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+        const light = new THREE.Mesh(lightGeo, lightMat);
+        light.position.set(xOff, 1.1, -8.15);
+        train.add(light);
+    });
+
+    const rampGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.85, 0.2, 4.0);
+    rampGeo.rotateX(Math.PI / 10);
+    const rampMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b });
+    const ramp = new THREE.Mesh(rampGeo, rampMat);
+    ramp.position.set(0, 0.8, -9.5);
+    train.add(ramp);
+
+    train.userData = { type: 'train', isObstacle: true, height: 3.2, width: LANE_WIDTH * 0.9, length: 16 };
+    return train;
+}
+
+function createLowHurdleMesh() {
+    const hurdle = new THREE.Group();
+    const barGeo = new THREE.BoxGeometry(LANE_WIDTH * 0.9, 0.25, 0.25);
+    const barMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x991b1b, emissiveIntensity: 0.5 });
+    const bar = new THREE.Mesh(barGeo, barMat);
+    bar.position.y = 0.55;
+    bar.castShadow = true;
+    hurdle.add(bar);
+
+    [-0.8, 0.8].forEach(x => {
+        const legGeo = new THREE.BoxGeometry(0.12, 0.55, 0.12);
+        const leg = new THREE.Mesh(legGeo, barMat);
+        leg.position.set(x, 0.275, 0);
+        hurdle.add(leg);
+    });
+
+    hurdle.userData = { type: 'hurdle', isObstacle: true, height: 0.65, canJump: true, canSlide: false };
+    return hurdle;
+}
+
+function createPowerupItemMesh(type) {
+    const group = new THREE.Group();
+    const boxGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+    let color = 0x38bdf8;
+    if (type === 'magnet') color = 0x00d2ff;
+    if (type === 'jetpack') color = 0xef4444;
+    if (type === 'multiplier') color = 0xec4899;
+    if (type === 'sneakers') color = 0x10b981;
+
+    const boxMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6 });
+    const mesh = new THREE.Mesh(boxGeo, boxMat);
+    mesh.position.y = 1.0;
+    group.add(mesh);
+    group.userData = { type: 'powerup_item', powerupType: type };
+    return group;
+}
+
+// Spawner Cycle
+let lastSpawnZ = 30;
+
+function spawnTrackContent(zTarget) {
+    while (lastSpawnZ < zTarget) {
+        lastSpawnZ += 18 + Math.random() * 8;
+        const freeLane = Math.floor(Math.random() * 3);
+
+        // Chance to spawn pigeons resting on track
+        if (Math.random() < 0.2) {
+            const flock = createPigeonFlock();
+            flock.position.set(LANES_X[Math.floor(Math.random() * 3)], 0.1, lastSpawnZ - 6);
+            scene.add(flock);
+            activePigeons.push(flock);
+        }
+
+        for (let laneIdx = 0; laneIdx < 3; laneIdx++) {
+            const laneX = LANES_X[laneIdx];
+
+            if (laneIdx === freeLane) {
+                if (Math.random() < 0.25) {
+                    const pTypes = ['magnet', 'jetpack', 'multiplier', 'sneakers'];
+                    const chosen = pTypes[Math.floor(Math.random() * pTypes.length)];
+                    const pItem = createPowerupItemMesh(chosen);
+                    pItem.position.set(laneX, 0, lastSpawnZ);
+                    scene.add(pItem);
+                    activePowerupItems.push(pItem);
+                } else {
+                    const isArc = Math.random() < 0.4;
+                    for (let c = 0; c < 5; c++) {
+                        const coin = createStarCoinMesh();
+                        const cZ = lastSpawnZ + (c * 2.2);
+                        const cY = isArc ? 1.0 + Math.sin((c / 4) * Math.PI) * 2.0 : 1.0;
+                        coin.position.set(laneX, cY, cZ);
+                        scene.add(coin);
+                        activeCoins.push(coin);
+                    }
+                }
+            } else {
+                let obstacle = null;
+                const obsType = Math.random();
+
+                if (obsType < 0.35) {
+                    obstacle = createBufferStopBarrier();
+                } else if (obsType < 0.65) {
+                    obstacle = createLowHurdleMesh();
+                } else {
+                    obstacle = createSubwayTrainMesh();
+                    // Spawn rooftop star coins trail
+                    for (let tc = 0; tc < 5; tc++) {
+                        const tCoin = createStarCoinMesh();
+                        const tcZ = lastSpawnZ - 8.0 + tc * 3.2;
+                        const tcY = tc === 0 ? 2.2 : 4.2;
+                        tCoin.position.set(laneX, tcY, tcZ);
+                        scene.add(tCoin);
+                        activeCoins.push(tCoin);
+                    }
+                }
+
+                obstacle.position.set(laneX, 0, lastSpawnZ);
+                scene.add(obstacle);
+                activeObstacles.push(obstacle);
+            }
+        }
+    }
+}
+
+// --- Dynamic Weather & Time-of-Day Logic ---
+let currentWeather = 'MORNING'; // MORNING (0-350m), MIDDAY (350-750m), SUNSET (750-1200m), RAINY_NIGHT (1200m+)
+
+function updateWeather(distance) {
+    let targetWeather = 'MORNING';
+    if (distance >= 1200) targetWeather = 'RAINY_NIGHT';
+    else if (distance >= 750) targetWeather = 'SUNSET';
+    else if (distance >= 350) targetWeather = 'MIDDAY';
+
+    if (targetWeather !== currentWeather) {
+        currentWeather = targetWeather;
+        const badge = document.getElementById('hud-weather-badge');
+
+        if (currentWeather === 'MORNING') {
+            scene.background.setHex(0xfef3c7);
+            scene.fog.color.setHex(0xfef3c7);
+            sunLight.color.setHex(0xffedd5);
+            sunLight.intensity = 1.4;
+            streetLight.intensity = 0.0;
+            rainMat.opacity = 0.0;
+            asphaltMat.roughness = 0.85;
+            badge.innerText = '🌅 GOLDEN MORNING';
+        } else if (currentWeather === 'MIDDAY') {
+            scene.background.setHex(0x38bdf8);
+            scene.fog.color.setHex(0x38bdf8);
+            sunLight.color.setHex(0xffffff);
+            sunLight.intensity = 1.6;
+            streetLight.intensity = 0.0;
+            rainMat.opacity = 0.0;
+            asphaltMat.roughness = 0.85;
+            badge.innerText = '☀️ BRIGHT MIDDAY';
+        } else if (currentWeather === 'SUNSET') {
+            scene.background.setHex(0xfb923c);
+            scene.fog.color.setHex(0xfb923c);
+            sunLight.color.setHex(0xf97316);
+            sunLight.intensity = 1.1;
+            streetLight.intensity = 1.2;
+            rainMat.opacity = 0.0;
+            asphaltMat.roughness = 0.85;
+            badge.innerText = '🌇 SUNSET DUSK';
+        } else if (currentWeather === 'RAINY_NIGHT') {
+            scene.background.setHex(0x090d16);
+            scene.fog.color.setHex(0x090d16);
+            sunLight.color.setHex(0x38bdf8);
+            sunLight.intensity = 0.4;
+            streetLight.intensity = 2.0;
+            rainMat.opacity = 0.75;
+            asphaltMat.roughness = 0.2; // Wet puddle reflection
+            badge.innerText = '🌧️ RAINY NEON NIGHT';
+            AudioSys.playPowerup();
+        }
+    }
+}
+
+// --- Wardrobe Outfits ---
+function setOutfit(style) {
+    currentOutfit = style;
+    document.querySelectorAll('.outfit-btn').forEach(b => b.classList.remove('active'));
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+    }
+
+    const char = CHARACTERS[selectedCharIndex];
+    if (style === 'clay') {
+        // High-Fidelity Studio Clay Mode (Exact Match to Meshy Reference Clay Screenshot)
+        skinMat.color.setHex(0xd1d5db); skinMat.roughness = 0.55; skinMat.metalness = 0.02;
+        shirtMat.color.setHex(0xc7cbd1); shirtMat.roughness = 0.55;
+        jacketMat.color.setHex(0xd1d5db); jacketMat.roughness = 0.55;
+        jacketTrimMat.color.setHex(0xb0b5bd); jacketTrimMat.roughness = 0.55;
+        pantsMat.color.setHex(0xc7cbd1); pantsMat.roughness = 0.55;
+        shoesAccentMat.color.setHex(0xd1d5db); shoesAccentMat.roughness = 0.55;
+        shoeSoleMat.color.setHex(0xe5e7eb); shoeSoleMat.roughness = 0.55;
+        shoeDarkMat.color.setHex(0x9ca3af);
+        hairMat.color.setHex(0xb0b5bd); hairMat.roughness = 0.55; hairMat.metalness = 0.02;
+        browMat.color.setHex(0x6b7280);
+        irisMat.color.setHex(0x6b7280);
+        lipMat.color.setHex(0xb0b5bd);
+        goldMetalMat.color.setHex(0xc7cbd1); goldMetalMat.metalness = 0.4;
+        backpackGroup.visible = false;
+    } else {
+        // Full Color Realistic PBR Outfits
+        skinMat.color.setHex(char.skinColor); skinMat.roughness = 0.45; skinMat.metalness = 0.02;
+        hairMat.color.setHex(char.hairColor); hairMat.roughness = 0.40; hairMat.metalness = 0.08;
+        browMat.color.setHex(char.hairColor);
+        irisMat.color.setHex(char.irisColor || 0xd97706);
+        lipMat.color.setHex(0xd97768);
+        goldMetalMat.color.setHex(0xfbbf24); goldMetalMat.metalness = 0.90;
+        shoeSoleMat.color.setHex(0xffffff);
+        shoeDarkMat.color.setHex(0x1e293b);
+
+        if (style === 'casual') {
+            shirtMat.color.setHex(char.shirtColor);
+            jacketMat.color.setHex(char.jacketColor || char.shirtColor);
+            jacketTrimMat.color.setHex(0x52796f);
+            pantsMat.color.setHex(char.pantsColor);
+            shoesAccentMat.color.setHex(char.shoesColor);
+            backpackGroup.visible = false;
+        } else if (style === 'hoodie') {
+            shirtMat.color.setHex(0x312e81);
+            jacketMat.color.setHex(0x581c87);
+            jacketTrimMat.color.setHex(0x3b0764);
+            pantsMat.color.setHex(0x1e1b4b);
+            shoesAccentMat.color.setHex(0xec4899);
+            backpackGroup.visible = false;
+        } else if (style === 'suit') {
+            shirtMat.color.setHex(0xf8fafc);
+            jacketMat.color.setHex(0x0284c7);
+            jacketTrimMat.color.setHex(0x0369a1);
+            pantsMat.color.setHex(0x0c4a6e);
+            shoesAccentMat.color.setHex(0xf59e0b);
+            backpackGroup.visible = false;
+        } else if (style === 'cyber') {
+            shirtMat.color.setHex(0x064e3b);
+            jacketMat.color.setHex(0x10b981);
+            jacketTrimMat.color.setHex(0x047857);
+            pantsMat.color.setHex(0x022c22);
+            shoesAccentMat.color.setHex(0x38bdf8);
+            backpackGroup.visible = true;
+        }
+    }
+    AudioSys.playJump();
+}
+
+// --- Gameplay Runtime ---
+let gameState = 'MENU';
+let currentLane = 1;
+let targetLane = 1;
+let laneSwitchProgress = 1.0;
+let playerX = 0;
+let playerY = 0;
+let playerZ = 0;
+let verticalVel = 0;
+let isGrounded = true;
+let isSliding = false;
+let slideTimer = 0;
+let isHoverboardActive = false;
+let hoverboardTimer = 0;
+
+let runScore = 0;
+let runCoins = 0;
+let runDistance = 0;
+let coinStreak = 0;
+let currentRunSpeed = 11.0;
+
+const activePowerups = {
+    magnet: 0,
+    jetpack: 0,
+    multiplier: 0,
+    sneakers: 0
+};
+
+function applyCharacter(index) {
+    selectedCharIndex = index;
+    const char = CHARACTERS[index];
+    skinMat.color.setHex(char.skinColor);
+    shirtMat.color.setHex(char.shirtColor || 0xf8fafc);
+    jacketMat.color.setHex(char.jacketColor || char.shirtColor);
+    pantsMat.color.setHex(char.pantsColor);
+    shoesAccentMat.color.setHex(char.shoesColor);
+    hairMat.color.setHex(char.hairColor);
+    browMat.color.setHex(char.hairColor);
+    irisMat.color.setHex(char.irisColor || 0xd97706);
+
+    // Show Tech Backpack with Glowing Cyan Triangle Logo on boy archetype (matching reference image)
+    backpackGroup.visible = (char.gender === 'male' || currentOutfit === 'cyber');
+
+    // Dynamic gender shoulder proportions
+    if (char.gender === 'male') {
+        leftArmGroup.position.set(-0.36, 1.62, 0);
+        rightArmGroup.position.set(0.36, 1.62, 0);
+    } else {
+        leftArmGroup.position.set(-0.31, 1.58, 0);
+        rightArmGroup.position.set(0.31, 1.58, 0);
+    }
+
+    rebuildCharacterHairAndAcc(char);
+}
+
+function buildCharacterCarousel() {
+    const carousel = document.getElementById('character-carousel');
+    carousel.innerHTML = '';
+    CHARACTERS.forEach((char, idx) => {
+        const card = document.createElement('div');
+        card.className = `char-select-card ${idx === selectedCharIndex ? 'active' : ''}`;
+        card.onclick = () => {
+            applyCharacter(idx);
+            buildCharacterCarousel();
+            AudioSys.playJump();
+        };
+        const genderBadge = char.gender === 'male' ? '<span style="font-size: 10px; background: rgba(2,132,199,0.25); color: #38bdf8; padding: 2px 6px; border-radius: 6px; font-weight: 800;">👦 BOY</span>' : '<span style="font-size: 10px; background: rgba(236,72,153,0.25); color: #f472b6; padding: 2px 6px; border-radius: 6px; font-weight: 800;">👧 GIRL</span>';
+        card.innerHTML = `
+            <div style="font-size: 26px; line-height: 1; margin-bottom: 3px;">${char.icon}</div>
+            <div style="margin-bottom: 4px;">${genderBadge}</div>
+            <div class="char-card-name">${char.name}</div>
+            <div class="char-card-theme">${char.theme}</div>
+            <div class="char-card-ability">${char.ability}</div>
+        `;
+        carousel.appendChild(card);
+    });
+
+    document.getElementById('menu-highscore').innerText = SaveData.highScore;
+    document.getElementById('menu-totalcoins').innerText = SaveData.totalCoins;
+}
+
+function openShopModal() {
+    document.getElementById('shop-screen').classList.remove('hidden');
+    renderShopItems();
+}
+
+function closeShopModal() {
+    document.getElementById('shop-screen').classList.add('hidden');
+    buildCharacterCarousel();
+}
+
+function renderShopItems() {
+    const container = document.getElementById('shop-items-container');
+    const items = [
+        { id: 'magnet', name: '🧲 Venture Magnet', cost: 100 * SaveData.upgrades.magnet, desc: '+2s Coin Attraction' },
+        { id: 'jetpack', name: '🚀 Tech Jetpack', cost: 150 * SaveData.upgrades.jetpack, desc: '+2s Flying Duration' },
+        { id: 'multiplier', name: '⭐ 2X Multiplier', cost: 120 * SaveData.upgrades.multiplier, desc: '+3s Double Score' },
+        { id: 'sneakers', name: '👟 Super Sneakers', cost: 80 * SaveData.upgrades.sneakers, desc: '+2s Mega Jump' }
+    ];
+
+    container.innerHTML = items.map(item => `
+        <div class="shop-item">
+            <div>
+                <div class="shop-item-title">${item.name}</div>
+                <div class="shop-item-lvl">Tier ${SaveData.upgrades[item.id]} / 5</div>
+                <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">${item.desc}</div>
+            </div>
+            <button class="shop-buy-btn" ${SaveData.totalCoins < item.cost || SaveData.upgrades[item.id] >= 5 ? 'disabled' : ''} onclick="buyUpgrade('${item.id}', ${item.cost})">
+                ${SaveData.upgrades[item.id] >= 5 ? 'MAXED' : `🪙 ${item.cost}`}
+            </button>
+        </div>
+    `).join('');
+}
+
+function buyUpgrade(id, cost) {
+    if (SaveData.totalCoins >= cost && SaveData.upgrades[id] < 5) {
+        SaveData.totalCoins -= cost;
+        SaveData.upgrades[id]++;
+        SaveData.save();
+        AudioSys.playPowerup();
+        renderShopItems();
+    }
+}
+
+function handleInput(action) {
+    if (gameState !== 'PLAYING') return;
+
+    if (action === 'left' && targetLane > 0) {
+        targetLane--;
+        laneSwitchProgress = 0;
+        AudioSys.playJump();
+    } else if (action === 'right' && targetLane < 2) {
+        targetLane++;
+        laneSwitchProgress = 0;
+        AudioSys.playJump();
+    } else if (action === 'jump') {
+        if (isGrounded || activePowerups.jetpack > 0) {
+            if (isSliding) isSliding = false;
+            const boost = activePowerups.sneakers > 0 ? 1.4 : 1.0;
+            verticalVel = CHARACTERS[selectedCharIndex].jumpForce * boost;
+            isGrounded = false;
+            AudioSys.playJump();
+        }
+    } else if (action === 'slide') {
+        if (!isGrounded && activePowerups.jetpack <= 0) {
+            verticalVel = -18.0;
+            AudioSys.playSlide();
+        } else if (!isSliding) {
+            isSliding = true;
+            slideTimer = 0.75;
+            AudioSys.playSlide();
+        }
+    }
+}
+
+function activateHoverboard() {
+    if (gameState !== 'PLAYING') return;
+    isHoverboardActive = true;
+    hoverboardTimer = 15.0;
+    hoverboardGroup.visible = true;
+    document.getElementById('hud-hoverboard-active').style.display = 'flex';
+    AudioSys.playPowerup();
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') handleInput('left');
+    else if (e.code === 'KeyD' || e.code === 'ArrowRight') handleInput('right');
+    else if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') handleInput('jump');
+    else if (e.code === 'KeyS' || e.code === 'ArrowDown') handleInput('slide');
+    else if (e.code === 'KeyE') activateHoverboard();
+    else if (e.code === 'Escape') togglePause();
+});
+
+let tStartX = 0, tStartY = 0, tStartTime = 0;
+window.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.ctrl-btn, .char-select-card, .btn-primary, .btn-secondary, .shop-buy-btn, .outfit-btn')) return;
+    tStartX = e.touches[0].clientX;
+    tStartY = e.touches[0].clientY;
+    tStartTime = performance.now();
+}, { passive: true });
+
+window.addEventListener('touchend', (e) => {
+    if (e.target.closest('.ctrl-btn, .char-select-card, .btn-primary, .btn-secondary, .shop-buy-btn, .outfit-btn')) return;
+    const deltaX = e.changedTouches[0].clientX - tStartX;
+    const deltaY = e.changedTouches[0].clientY - tStartY;
+    const duration = (performance.now() - tStartTime) / 1000;
+
+    if (duration > 0.45) return;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (Math.abs(deltaX) > 25) {
+            if (deltaX > 0) handleInput('right');
+            else handleInput('left');
+        }
+    } else {
+        if (Math.abs(deltaY) > 25) {
+            if (deltaY < 0) handleInput('jump');
+            else handleInput('slide');
+        }
+    }
+}, { passive: true });
+
+function startGame() {
+    AudioSys.init();
+    AudioSys.startBGM();
+
+    document.getElementById('menu-screen').classList.add('hidden');
+    document.getElementById('gameplay-hud').style.display = 'flex';
+    document.getElementById('gameover-screen').classList.add('hidden');
+    labRoomGroup.visible = false; // Hide lab room during active run
+
+    resetGameSession();
+    gameState = 'PLAYING';
+}
+
+function resetGameSession() {
+    currentLane = 1;
+    targetLane = 1;
+    playerX = 0;
+    playerY = 0;
+    playerZ = 0;
+    verticalVel = 0;
+    isGrounded = true;
+    isSliding = false;
+    isHoverboardActive = false;
+    hoverboardGroup.visible = false;
+    document.getElementById('hud-hoverboard-active').style.display = 'none';
+
+    runScore = 0;
+    runCoins = 0;
+    runDistance = 0;
+    coinStreak = 0;
+    currentRunSpeed = CHARACTERS[selectedCharIndex].speed;
+    currentWeather = 'MORNING';
+
+    Object.keys(activePowerups).forEach(k => activePowerups[k] = 0);
+
+    activeObstacles.forEach(o => scene.remove(o));
+    activeCoins.forEach(c => scene.remove(c));
+    activePowerupItems.forEach(p => scene.remove(p));
+    activePigeons.forEach(pig => scene.remove(pig));
+    activeObstacles.length = 0;
+    activeCoins.length = 0;
+    activePowerupItems.length = 0;
+    activePigeons.length = 0;
+
+    lastSpawnZ = 30;
+    spawnTrackContent(120);
+}
+
+function togglePause() {
+    if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        document.getElementById('pause-screen').classList.remove('hidden');
+        AudioSys.stopBGM();
+    } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        document.getElementById('pause-screen').classList.add('hidden');
+        AudioSys.startBGM();
+    }
+}
+
+function restartGame() {
+    document.getElementById('pause-screen').classList.add('hidden');
+    document.getElementById('gameover-screen').classList.add('hidden');
+    resetGameSession();
+    gameState = 'PLAYING';
+    AudioSys.startBGM();
+}
+
+function quitToMainMenu() {
+    gameState = 'MENU';
+    document.getElementById('pause-screen').classList.add('hidden');
+    document.getElementById('gameover-screen').classList.add('hidden');
+    document.getElementById('gameplay-hud').style.display = 'none';
+    document.getElementById('menu-screen').classList.remove('hidden');
+    labRoomGroup.visible = true; // Show lab room in menu
+    AudioSys.stopBGM();
+    buildCharacterCarousel();
+}
+
+function triggerGameOver() {
+    AudioSys.playCrash();
+    AudioSys.stopBGM();
+    gameState = 'GAMEOVER';
+
+    const isNewBest = runScore > SaveData.highScore;
+    if (isNewBest) SaveData.highScore = Math.floor(runScore);
+    SaveData.totalCoins += runCoins;
+
+    if (runDistance >= 600 && SaveData.permanentMultiplier === 1) {
+        SaveData.permanentMultiplier = 2;
+    }
+    SaveData.save();
+
+    document.getElementById('gameplay-hud').style.display = 'none';
+    document.getElementById('gameover-score').innerText = Math.floor(runScore);
+    document.getElementById('gameover-best').innerText = SaveData.highScore;
+    document.getElementById('gameover-distance').innerText = `${Math.floor(runDistance)} m`;
+    document.getElementById('gameover-coins').innerText = `+${runCoins}`;
+    document.getElementById('gameover-subtitle').innerText = isNewBest ? '🎉 NEW RECORD HIGH SCORE!' : 'Every dream faces challenges. Get back up!';
+    document.getElementById('gameover-screen').classList.remove('hidden');
+}
+
+// --- Main 60 FPS Loop ---
+let lastFrameTime = performance.now();
+
+function gameLoop(now) {
+    requestAnimationFrame(gameLoop);
+    const dt = Math.min((now - lastFrameTime) / 1000, 0.1);
+    lastFrameTime = now;
+
+    if (gameState === 'PLAYING') {
+        currentRunSpeed = Math.min(24.0, CHARACTERS[selectedCharIndex].speed + Math.log(1 + runDistance * 0.002) * 4.0);
+
+        const powerupMult = activePowerups.multiplier > 0 ? 2 : 1;
+        const totalMult = SaveData.permanentMultiplier * powerupMult;
+        runScore += currentRunSpeed * dt * 10 * totalMult;
+        runDistance += currentRunSpeed * dt;
+        playerZ += currentRunSpeed * dt;
+
+        updateWeather(runDistance);
+
+        document.getElementById('hud-score').innerText = Math.floor(runScore);
+        document.getElementById('hud-coins').innerText = runCoins;
+        document.getElementById('hud-multiplier').innerText = `x${totalMult}`;
+
+        // 3-Lane Lateral Stepping
+        if (laneSwitchProgress < 1.0) {
+            laneSwitchProgress += dt / 0.18;
+            const t = Math.min(1.0, laneSwitchProgress);
+            const ease = 1 - Math.pow(1 - t, 3);
+            playerX = LANES_X[currentLane] + (LANES_X[targetLane] - LANES_X[currentLane]) * ease;
+            if (laneSwitchProgress >= 1.0) {
+                currentLane = targetLane;
+                playerX = LANES_X[targetLane];
+            }
+        }
+
+        // Vertical Physics & Jetpack Lift
+        if (activePowerups.jetpack > 0) {
+            playerY = THREE.MathUtils.lerp(playerY, 5.5, dt * 6.0);
+            isGrounded = false;
+        } else {
+            if (isSliding) {
+                slideTimer -= dt;
+                if (slideTimer <= 0) isSliding = false;
+            }
+
+            if (!isGrounded) {
+                verticalVel -= 26.0 * dt;
+                playerY += verticalVel * dt;
+                if (playerY <= 0) {
+                    playerY = 0;
+                    verticalVel = 0;
+                    isGrounded = true;
+                }
+            }
+        }
+
+        // Rain particle animation when in Rainy Night
+        if (currentWeather === 'RAINY_NIGHT') {
+            rainParticles.position.set(playerX, 0, playerZ);
+            const pos = rainGeo.attributes.position.array;
+            for (let i = 1; i < pos.length; i += 3) {
+                pos[i] -= 35 * dt;
+                if (pos[i] < 0) pos[i] = 18;
+            }
+            rainGeo.attributes.position.needsUpdate = true;
+        }
+
+        // Dynamic Pigeons Scattering AI
+        for (let i = activePigeons.length - 1; i >= 0; i--) {
+            const flock = activePigeons[i];
+            const dist = flock.position.distanceTo(new THREE.Vector3(playerX, 0, playerZ));
+
+            if (dist < 12.0 && !flock.userData.scattered) {
+                flock.userData.scattered = true;
+                AudioSys.playBirdFlap();
+            }
+
+            if (flock.userData.scattered) {
+                flock.position.y += 9.0 * dt;
+                flock.position.z += 8.0 * dt;
+                flock.children.forEach(b => {
+                    b.children[1].rotation.z = Math.sin(now * 0.05) * 0.8;
+                    b.children[2].rotation.z = -Math.sin(now * 0.05) * 0.8;
+                });
+            }
+
+            if (flock.position.y > 18.0) {
+                scene.remove(flock);
+                activePigeons.splice(i, 1);
+            }
+        }
+
+        // Power-Up Timers
+        let powerupHtml = '';
+        Object.keys(activePowerups).forEach(key => {
+            if (activePowerups[key] > 0) {
+                activePowerups[key] -= dt;
+                const pNames = { magnet: '🧲 MAGNET', jetpack: '🚀 JETPACK', multiplier: '⭐ 2X BOOST', sneakers: '👟 SNEAKERS' };
+                powerupHtml += `
+                    <div class="powerup-indicator">
+                        <div class="powerup-progress-ring"></div>
+                        <span>${pNames[key]} (${Math.ceil(activePowerups[key])}s)</span>
+                    </div>
+                `;
+            }
+        });
+        document.getElementById('powerups-hud-container').innerHTML = powerupHtml;
+        jetpackGroup.visible = activePowerups.jetpack > 0;
+
+        // Hoverboard Shield
+        if (isHoverboardActive) {
+            hoverboardTimer -= dt;
+            if (hoverboardTimer <= 0) {
+                isHoverboardActive = false;
+                hoverboardGroup.visible = false;
+                document.getElementById('hud-hoverboard-active').style.display = 'none';
+            }
+        }
+
+        // Track Recycling
+        trackSegments.forEach(seg => {
+            if (seg.position.z < playerZ - TRACK_SEGMENT_LEN) {
+                seg.position.z += TRACK_SEGMENT_LEN * TOTAL_TRACK_SEGMENTS;
+            }
+        });
+
+        spawnTrackContent(playerZ + 140);
+
+        // Coin Pickups
+        for (let i = activeCoins.length - 1; i >= 0; i--) {
+            const coin = activeCoins[i];
+            coin.rotation.z += dt * 3.5;
+
+            if (activePowerups.magnet > 0) {
+                const distToPlayer = coin.position.distanceTo(new THREE.Vector3(playerX, playerY + 1.0, playerZ));
+                if (distToPlayer < 18.0) {
+                    coin.position.lerp(new THREE.Vector3(playerX, playerY + 1.0, playerZ), dt * 12.0);
+                }
+            }
+
+            const dx = Math.abs(coin.position.x - playerX);
+            const dy = Math.abs(coin.position.y - (playerY + 1.0));
+            const dz = Math.abs(coin.position.z - playerZ);
+
+            if (dx < 0.9 && dy < 1.3 && dz < 1.1) {
+                scene.remove(coin);
+                activeCoins.splice(i, 1);
+                coinStreak++;
+                runCoins += Math.round(1 * CHARACTERS[selectedCharIndex].coinBonus);
+                AudioSys.playCoin(coinStreak);
+                continue;
+            }
+
+            if (coin.position.z < playerZ - 10) {
+                scene.remove(coin);
+                activeCoins.splice(i, 1);
+            }
+        }
+
+        // Power-Up Crates
+        for (let i = activePowerupItems.length - 1; i >= 0; i--) {
+            const item = activePowerupItems[i];
+            item.rotation.y += dt * 2.0;
+
+            const dx = Math.abs(item.position.x - playerX);
+            const dy = Math.abs(item.position.y - playerY);
+            const dz = Math.abs(item.position.z - playerZ);
+
+            if (dx < 1.0 && dy < 1.8 && dz < 1.2) {
+                const type = item.userData.powerupType;
+                const upgradeTier = SaveData.upgrades[type] || 1;
+                const baseDurations = { magnet: 8, jetpack: 6, multiplier: 10, sneakers: 8 };
+                activePowerups[type] = baseDurations[type] + upgradeTier * 2.0;
+
+                scene.remove(item);
+                activePowerupItems.splice(i, 1);
+                AudioSys.playPowerup();
+                continue;
+            }
+
+            if (item.position.z < playerZ - 10) {
+                scene.remove(item);
+                activePowerupItems.splice(i, 1);
+            }
+        }
+
+        // Train Rooftop & Ramp Surfing Detection
+        let onTrainSurface = false;
+        for (let i = 0; i < activeObstacles.length; i++) {
+            const obs = activeObstacles[i];
+            if (obs.userData.type === 'train') {
+                const dx = Math.abs(obs.position.x - playerX);
+                const relZ = playerZ - obs.position.z;
+
+                if (dx < 1.05 && relZ >= -11.5 && relZ <= 8.5) {
+                    if (relZ <= -7.5 && !isSliding) {
+                        // Running up the front ramp
+                        const rampT = (relZ - (-11.5)) / 4.0;
+                        const targetY = rampT * 3.2;
+                        if (playerY <= targetY + 0.6) {
+                            playerY = Math.max(playerY, targetY);
+                            isGrounded = true;
+                            verticalVel = 0;
+                            onTrainSurface = true;
+                        }
+                    } else if (playerY >= 2.6) {
+                        // Running on train rooftop
+                        playerY = 3.2;
+                        isGrounded = true;
+                        verticalVel = 0;
+                        onTrainSurface = true;
+                    }
+                }
+            }
+        }
+
+        // Obstacle Collisions
+        for (let i = activeObstacles.length - 1; i >= 0; i--) {
+            const obs = activeObstacles[i];
+            const data = obs.userData;
+
+            const dx = Math.abs(obs.position.x - playerX);
+            const relZ = playerZ - obs.position.z;
+
+            if (data.type === 'train') {
+                if (dx < 0.95 && relZ >= -11.5 && relZ <= 8.0) {
+                    if (!onTrainSurface) {
+                        if (isHoverboardActive) {
+                            isHoverboardActive = false;
+                            hoverboardGroup.visible = false;
+                            document.getElementById('hud-hoverboard-active').style.display = 'none';
+                            scene.remove(obs);
+                            activeObstacles.splice(i, 1);
+                            AudioSys.playCrash();
+                            continue;
+                        } else {
+                            triggerGameOver();
+                            break;
+                        }
+                    }
+                }
+            } else {
+                const dz = Math.abs(obs.position.z - playerZ);
+                if (dx < 0.9 && dz < 0.8) {
+                    let isHit = false;
+                    if (data.type === 'hurdle') {
+                        if (playerY < 0.7) isHit = true;
+                    } else {
+                        isHit = true;
+                    }
+
+                    if (isHit) {
+                        if (isHoverboardActive) {
+                            isHoverboardActive = false;
+                            hoverboardGroup.visible = false;
+                            document.getElementById('hud-hoverboard-active').style.display = 'none';
+                            scene.remove(obs);
+                            activeObstacles.splice(i, 1);
+                            AudioSys.playCrash();
+                            continue;
+                        } else {
+                            triggerGameOver();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (obs.position.z < playerZ - 20) {
+                scene.remove(obs);
+                activeObstacles.splice(i, 1);
+            }
+        }
+
+        // Kinematics & High-Fidelity Animations
+        playerGroup.position.set(playerX, playerY, playerZ);
+
+        if (isSliding) {
+            // Low streamlined baseball / parkour slide pose
+            playerGroup.position.y = playerY - 0.45;
+            playerGroup.rotation.x = -Math.PI / 4;
+            playerGroup.rotation.y = 0.1;
+
+            leftLegGroup.rotation.x = -Math.PI / 2.5;
+            leftShinGroup.rotation.x = 0.1;
+
+            rightLegGroup.rotation.x = 0.4;
+            rightShinGroup.rotation.x = -Math.PI / 2.2;
+
+            leftArmGroup.rotation.x = -Math.PI / 3;
+            leftForearmGroup.rotation.x = -0.5;
+            rightArmGroup.rotation.x = 0.8;
+            rightForearmGroup.rotation.x = -0.8;
+            spine.rotation.y = -0.2;
+        } else if (!isGrounded && activePowerups.jetpack <= 0) {
+            // Dynamic Jump parkour flight pose
+            playerGroup.rotation.x = 0.12;
+            playerGroup.rotation.y = 0;
+
+            leftLegGroup.rotation.x = -Math.PI / 3.5;
+            leftShinGroup.rotation.x = -Math.PI / 2.8;
+
+            rightLegGroup.rotation.x = -Math.PI / 4.5;
+            rightShinGroup.rotation.x = -Math.PI / 2.2;
+
+            leftArmGroup.rotation.x = 0.8;
+            leftForearmGroup.rotation.x = -0.6;
+            rightArmGroup.rotation.x = -0.9;
+            rightForearmGroup.rotation.x = -0.8;
+            spine.rotation.y = 0;
+        } else if (activePowerups.jetpack > 0) {
+            // Jetpack Flying Cruise pose
+            playerGroup.rotation.x = 0.22;
+            playerGroup.rotation.y = 0;
+
+            leftLegGroup.rotation.x = 0.2;
+            leftShinGroup.rotation.x = -0.3;
+            rightLegGroup.rotation.x = 0.15;
+            rightShinGroup.rotation.x = -0.25;
+
+            leftArmGroup.rotation.x = -0.4;
+            leftForearmGroup.rotation.x = -0.4;
+            rightArmGroup.rotation.x = -0.4;
+            rightForearmGroup.rotation.x = -0.4;
+            spine.rotation.y = 0;
+        } else if (isHoverboardActive) {
+            // Hoverboard Surfing Pose
+            playerGroup.rotation.x = 0;
+            playerGroup.rotation.y = 0.35;
+
+            leftLegGroup.rotation.x = -0.2;
+            leftShinGroup.rotation.x = -0.25;
+            rightLegGroup.rotation.x = 0.2;
+            rightShinGroup.rotation.x = -0.25;
+
+            leftArmGroup.rotation.x = 0.4;
+            leftForearmGroup.rotation.x = -0.6;
+            rightArmGroup.rotation.x = -0.4;
+            rightForearmGroup.rotation.x = -0.6;
+            spine.rotation.y = 0;
+        } else {
+            // Natural Athletic Runner Stride
+            playerGroup.rotation.x = 0.08;
+            playerGroup.rotation.y = 0;
+
+            const runCycle = performance.now() * 0.014 * (currentRunSpeed / 10.0);
+            const legPhase = Math.sin(runCycle);
+
+            leftLegGroup.rotation.x = -legPhase * 0.85;
+            rightLegGroup.rotation.x = legPhase * 0.85;
+
+            leftShinGroup.rotation.x = Math.max(0, legPhase * 1.15) * -1;
+            rightShinGroup.rotation.x = Math.max(0, -legPhase * 1.15) * -1;
+
+            leftArmGroup.rotation.x = legPhase * 0.75;
+            leftForearmGroup.rotation.x = -0.65 - Math.max(0, -legPhase * 0.35);
+
+            rightArmGroup.rotation.x = -legPhase * 0.75;
+            rightForearmGroup.rotation.x = -0.65 - Math.max(0, legPhase * 0.35);
+
+            spine.rotation.y = -legPhase * 0.12;
+            headGroup.position.y = 2.02 + Math.abs(Math.sin(runCycle)) * 0.04;
+
+            if (dynamicPonytailBone) {
+                dynamicPonytailBone.rotation.x = Math.sin(runCycle * 2) * 0.25;
+                dynamicPonytailBone.rotation.z = Math.cos(runCycle) * 0.15;
+            }
+        }
+
+        // Camera Follower
+        const targetCamY = activePowerups.jetpack > 0 ? 8.5 : playerY + 4.2;
+        camera.position.x += (playerX - camera.position.x) * (dt * 12.0);
+        camera.position.y += (targetCamY - camera.position.y) * (dt * 6.0);
+        camera.position.z = playerZ - 6.5;
+        camera.lookAt(playerX, playerY + 1.5, playerZ + 8.0);
+    } else {
+        // In 3D Student Lab Menu: 360 Showcase with Hands-in-Pockets Pose (Matching Reference Image View 3)
+        camera.position.set(0, 2.3, -4.2);
+        camera.lookAt(0, 1.35, 0);
+        playerGroup.position.set(0, 0, 0);
+
+        // Relaxed Standing Idle Pose
+        playerGroup.rotation.x = 0;
+        leftLegGroup.rotation.set(0, 0, 0.04);
+        rightLegGroup.rotation.set(0, 0, -0.04);
+        leftShinGroup.rotation.set(0, 0, 0);
+        rightShinGroup.rotation.set(0, 0, 0);
+
+        // Hands Resting Casually in Front Slash Pockets (Matching Reference View 3)
+        leftArmGroup.rotation.set(0.12, 0, 0.16);
+        leftForearmGroup.rotation.set(-0.62, 0.28, 0);
+        rightArmGroup.rotation.set(0.12, 0, -0.16);
+        rightForearmGroup.rotation.set(-0.62, -0.28, 0);
+        spine.rotation.y = 0;
+        headGroup.position.y = 2.02;
+
+        if (!isMenuDragging && performance.now() - lastMenuDragTime > 1500) {
+            menuRotationY += dt * 0.45;
+        }
+        playerGroup.rotation.y = menuRotationY;
+        rgbLight.color.setHSL((now * 0.0003) % 1.0, 0.9, 0.6);
+    }
+
+    renderer.render(scene, camera);
+}
+
+// 360° Drag & Inspection Controls in Main Menu
+let menuRotationY = 0;
+let isMenuDragging = false;
+let menuDragStartX = 0;
+let lastMenuDragTime = 0;
+
+window.addEventListener('pointerdown', (e) => {
+    if (gameState !== 'MENU') return;
+    if (e.target.closest('.char-select-card, .btn-primary, .btn-secondary, .shop-buy-btn, .outfit-btn, .icon-btn')) return;
+    isMenuDragging = true;
+    menuDragStartX = e.clientX;
+    lastMenuDragTime = performance.now();
+});
+
+window.addEventListener('pointermove', (e) => {
+    if (gameState !== 'MENU' || !isMenuDragging) return;
+    const deltaX = e.clientX - menuDragStartX;
+    menuDragStartX = e.clientX;
+    menuRotationY += deltaX * 0.012;
+    lastMenuDragTime = performance.now();
+});
+
+window.addEventListener('pointerup', () => { isMenuDragging = false; });
+window.addEventListener('pointercancel', () => { isMenuDragging = false; });
+
+window.addEventListener('resize', () => {
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+});
+
+applyCharacter(0);
+buildCharacterCarousel();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
