@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/preview/index.html" },
+    { "source": "/js/(.*)", "destination": "/preview/js/$1" },
+    { "source": "/models/(.*)", "destination": "/preview/models/$1" }
+  ]
+}
